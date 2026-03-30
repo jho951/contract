@@ -25,6 +25,7 @@ MSA 간 인터페이스(라우트, 헤더, 보안, 에러, 환경변수, OpenAPI
 - [변경 프로세스](contracts/change-process.md)
 - [도입 매트릭스](contracts/adoption-matrix.md)
 - [도입 플레이북](docs/adoption-playbook.md)
+- [AI Agent 플레이북](docs/ai-agent-playbook.md)
 - OpenAPI
   - `contracts/openapi/gateway-edge.v1.yaml`
   - `contracts/openapi/user-service.v1.yaml`
