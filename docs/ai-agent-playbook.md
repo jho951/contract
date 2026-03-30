@@ -50,3 +50,8 @@ AI 에이전트가 서비스 레포를 수정할 때, 계약 Source of Truth를 
 
 ## 6) 출력 템플릿
 - 에이전트는 [Agent Task Template](examples/agent-task-template.md) 형식을 사용한다.
+
+## 7) 자동화 게이트(권장)
+- 서비스 PR CI에서 `contract-impact-check.sh`를 실행한다.
+- 참조: [Contract Automation](contract-automation.md)
+- 계약 영향 변경이 감지되면 `CONTRACT_SYNC.md` 갱신 없이는 머지되지 않도록 설정한다.
