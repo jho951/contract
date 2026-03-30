@@ -27,6 +27,21 @@ MSA 간 인터페이스(라우트, 헤더, 보안, 에러, 환경변수, OpenAPI
 - [도입 플레이북](docs/adoption-playbook.md)
 - OpenAPI: `contracts/openapi/*.yaml`
 
+## 빠른 실행
+
+```bash
+# 전체 서비스 레포 동기화 + 네트워크 준비
+./scripts/msa-stack.sh init
+
+# 전체 compose up
+./scripts/msa-stack.sh up
+
+# 상태 확인
+./scripts/msa-stack.sh ps
+```
+
+- 상세: [Stack Orchestration](docs/stack-orchestration.md)
+
 ## 원칙
 1. Breaking change는 반드시 계약 버전 증가(`v2+`) 후 반영
 2. 구현 변경보다 계약 변경 PR을 먼저 머지
