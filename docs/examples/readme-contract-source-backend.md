@@ -35,7 +35,7 @@ Use one of these blocks near the top of the backend service README files.
 - `GET /health`, `GET /ready`
 - RBAC policy evaluation and audit logging
 - v2: authorization queries, policy-based authz, token claims sync, authz cache, versioning, delegation
-- v2 docs: `contracts/authz/policy-model.md`, `contracts/authz/delegation.md`, `contracts/authz/versioning.md`, `contracts/authz/introspection.md`, `contracts/authz/cache.md`, `contracts/authz/external-boundaries.md`
+- v2 docs: `contracts/authz/policy-model.md`, `contracts/authz/policy-engine.md`, `contracts/authz/delegation.md`, `contracts/authz/versioning.md`, `contracts/authz/introspection.md`, `contracts/authz/cache.md`, `contracts/authz/external-boundaries.md`
 - v2 OpenAPI draft: `contracts/openapi/authz-service.v2.yaml`
 - audit events: `contracts/audit-log/README.md`
 ```

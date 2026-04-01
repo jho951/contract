@@ -67,13 +67,13 @@ AI 에이전트가 서비스 레포를 수정할 때, 계약 Source of Truth를 
 ## 4) 서비스별 수정 책임
 - Gateway: 외부 `/v1/**` 경계, stripPrefix, trusted header 재주입, INTERNAL secret 검사
 - Auth: SSO/토큰 발급, gateway 전달 헤더/토큰 계약 수용
-- Authz: 권한 정책/역할 판정, 접근 제어 계약 수용
+- Authz: 권한 정책/역할 판정, 정책 엔진, 접근 제어 계약 수용
 - User: 사용자/소셜 링크 소유권, `/users/**`, `/internal/users/**` 계약 수용
 - Redis: 세션/캐시 저장 계층 운영 계약
 - Block(dev): 문서/블록 도메인 API 계약 수용
 - Editor-page: 계약 API를 소비하는 프론트엔드 UI/플로우 반영
 - Explain-page: 계약 API를 소비하는 프론트엔드 UI/플로우 반영
-- Shared modules: `Ui-components-module`, `auth`, `audit-log`, `ip-guard`, `rate-limiter`, `feature-flag`, `policy-config`는 [Module Ecosystem](module-ecosystem.md)를 기준으로 기록한다.
+- Shared modules: `Ui-components-module`, `auth`, `audit-log`, `plugin-policy-engine`, `ip-guard`, `rate-limiter`, `feature-flag`, `policy-config`는 [Module Ecosystem](module-ecosystem.md)를 기준으로 기록한다.
 - All services: 신규 권한/기능/정책 판단은 [Decision Criteria](../contracts/common/decision-criteria.md)를 먼저 따른다.
 - All services: 감사 이벤트는 [Audit Log Contract](../contracts/audit-log/README.md)를 먼저 따른다.
 

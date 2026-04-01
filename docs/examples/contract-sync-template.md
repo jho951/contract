@@ -27,6 +27,7 @@
 - `contracts/authz/api.md`
 - `contracts/authz/v2.md`
 - `contracts/authz/policy-model.md`
+- `contracts/authz/policy-engine.md`
 - `contracts/authz/delegation.md`
 - `contracts/authz/versioning.md`
 - `contracts/authz/introspection.md`
@@ -71,6 +72,7 @@
   - `authz-rbac`
   - `authz-audit`
   - `authz-policy`
+  - `authz-policy-engine`
   - `authz-delegation`
   - `authz-versioning`
   - `authz-introspection`

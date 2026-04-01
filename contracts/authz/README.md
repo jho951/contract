@@ -10,11 +10,13 @@
 | 감사 추적 | `requestId`, `correlationId`, `decision`, `reason` 기록 |
 | 운영 준비 상태 | DB/Redis ready 체크 제공 |
 | 감사 이벤트 발행 | `audit-log`로 정책/역할/위임/판정 이벤트를 발행 |
+| 정책 엔진 | `plugin-policy-engine`로 resource/action/condition/effect 판정을 수행 |
 
 ## 문서
 - [API Contract](api.md)
 - [v2 Design](v2.md)
 - [Policy Model](policy-model.md)
+- [Policy Engine Contract](policy-engine.md)
 - [Delegation Contract](delegation.md)
 - [Versioning Contract](versioning.md)
 - [Introspection Contract](introspection.md)

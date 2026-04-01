@@ -21,6 +21,7 @@
 - 코드 SoT는 각 서비스 레포
 - 인터페이스 SoT는 본 `contract` 레포
 - `Authz-server`와 `Redis-server`는 Gateway의 인증/인가 캐시 흐름과 직접 연결되므로, 계약 변경 시 Gateway 문서도 함께 갱신한다.
+- `plugin-policy-engine`은 Authz-server의 정책 평가 런타임이며, 정책 모델 변경 시 Authz 문서와 함께 갱신한다.
 - `audit-log`는 인증/인가/프로필/편집/운영 이벤트의 공통 감사 허브이므로, 새 이벤트가 추가되면 각 서비스 문서와 함께 갱신한다.
 - 서비스 책임은 구현 세부가 아니라 계약 소유권을 기준으로 정의한다.
 - 권한의 진실은 `Authz-server`, 공개 범위는 `User-server`, 최종 실행은 소비자 서비스가 각자 책임진다.

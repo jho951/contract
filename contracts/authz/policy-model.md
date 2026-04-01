@@ -85,3 +85,8 @@ conditions:
 ## v1 / v2 경계
 - v1은 관리자 RBAC와 기본 정책 판정 중심이다.
 - v2는 policy engine, delegation, introspection, cache invalidation을 포함한다.
+
+## Runtime Binding
+- 현재 Authz-server의 정책 평가 런타임은 Maven Central에 publish된 `plugin-policy-engine`을 사용한다.
+- `policy-model.md`는 evaluator 구현체가 아니라, evaluator가 따라야 하는 계약 기준이다.
+- evaluator가 바뀌어도 리소스 계층, 액션 네이밍, 조건 속성, 우선순위는 이 문서를 기준으로 유지한다.

@@ -19,6 +19,7 @@
 - `contracts/authz/api.md`
 - `contracts/authz/v2.md`
 - `contracts/authz/policy-model.md`
+- `contracts/authz/policy-engine.md`
 - `contracts/authz/delegation.md`
 - `contracts/authz/versioning.md`
 - `contracts/authz/introspection.md`
@@ -51,6 +52,7 @@
   - `authz-rbac`
   - `authz-audit`
   - `authz-policy`
+  - `authz-policy-engine`
   - `authz-delegation`
   - `authz-versioning`
   - `authz-introspection`
@@ -84,6 +86,7 @@
 ## v2 Notes
 - 권한 조회는 role, scope, tenant, entitlements 스냅샷을 반환한다.
 - 정책 검증은 `resource + action + condition` 모델을 사용한다.
+- 정책 런타임은 Maven Central publish된 `plugin-policy-engine`을 사용한다.
 - 토큰 클레임에는 `roles`, `scopes`, `tenant`, `entitlements`, `authz_version`을 반영할 수 있다.
 - 권한 변경 이벤트는 role 부여/회수, 그룹 변경, 정책 변경을 모두 포함한다.
 - 관리자 권한은 운영자, 보안관리자, 감사자처럼 세분화할 수 있다.

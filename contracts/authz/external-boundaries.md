@@ -18,6 +18,7 @@
 - Editor는 `그 행위를 실제로 처리할 거냐`를 판정한다.
 - Gateway는 이 책임들을 대체하지 않는다.
 - 정책 판단 시에는 `role`, `condition`, `token scope`, `cache invalidation`, `final enforcement`를 함께 확인한다.
+- 정책 평가는 `plugin-policy-engine` 런타임이 수행하고, 계약 기준은 `policy-model.md`를 따른다.
 - 고위험 작업일수록 `Gateway`보다는 `Authz`와 `Editor`의 재검증 비중을 높인다.
 
 ## 고위험 경로

@@ -17,10 +17,12 @@
 | --- | --- | --- |
 | `auth` | `https://github.com/jho951/auth` | 현재 적용 중인 인증/세션/JWT 발급 핵심 모듈 |
 | `audit-log` | `https://github.com/jho951/audit-log` | 모든 서비스 공통 감사 이벤트 모듈 |
+| `plugin-policy-engine` | `https://github.com/jho951/plugin-policy-engine` | Authz 정책 평가 엔진 모듈, resource/action/condition/effect 판정 |
 
 ### 현재 상태
 - `auth`는 현재 Auth-server에서 실제 인증 원천과 세션 발급 흐름에 사용한다.
 - `audit-log`는 Auth/Authz/User/Gateway/Editor/Block/Redis 전반의 감사 이벤트 추적과 증적에 사용한다.
+- `plugin-policy-engine`은 Maven Central에 publish된 상태이며, Authz-server의 현재 정책 평가 런타임으로 사용한다.
 - 두 모듈은 현재 아키텍처의 필수 기반이며, contract 문서는 이들의 책임 경계를 서비스 계약과 함께 고정한다.
 
 ### 감사 이벤트 대상
@@ -53,6 +55,7 @@
 | UI 컴포넌트 구현 | `Ui-components-module` 또는 각 프론트엔드 레포 |
 | 인증/세션 | `auth` + `Auth-server` 계약 |
 | 감사 추적 | `audit-log` + 서비스 감사 계약 |
+| 정책 평가 | `plugin-policy-engine` + `contracts/authz/*` |
 | 관리자 접근 제한 | `ip-guard` + Gateway/Authz 정책 |
 | 요청 제한 | `rate-limiter` + Gateway/Authz 정책 |
 | 기능 노출 | `feature-flag` + 각 서비스/프론트 계약 |

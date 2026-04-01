@@ -21,6 +21,7 @@
   - `contracts/authz/api.md`
   - `contracts/authz/v2.md`
   - `contracts/authz/policy-model.md`
+  - `contracts/authz/policy-engine.md`
   - `contracts/authz/delegation.md`
   - `contracts/authz/versioning.md`
   - `contracts/authz/introspection.md`
@@ -79,6 +80,6 @@
 ## PR Body Snippet
 ```md
 Contract SHA: <contract-sha>
-Contract Areas: routing, headers, security, auth, auth-v2, authz, authz-v2, authz-rbac, authz-audit, authz-policy, authz-delegation, authz-versioning, authz-introspection, authz-cache, authz-boundaries, user, user-visibility, redis, redis-keys, redis-security, redis-ops, audit-log, audit-log-model, audit-log-events, audit-log-security, audit-log-ops, auth-ops, auth-errors, authz-ops, authz-errors, user-ops, user-errors, env, openapi
+Contract Areas: routing, headers, security, auth, auth-v2, authz, authz-v2, authz-rbac, authz-audit, authz-policy, authz-policy-engine, authz-delegation, authz-versioning, authz-introspection, authz-cache, authz-boundaries, user, user-visibility, redis, redis-keys, redis-security, redis-ops, audit-log, audit-log-model, audit-log-events, audit-log-security, audit-log-ops, auth-ops, auth-errors, authz-ops, authz-errors, user-ops, user-errors, env, openapi
 Validation: <commands/results>
 ```
