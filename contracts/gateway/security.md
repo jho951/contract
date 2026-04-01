@@ -12,6 +12,7 @@
 - `ADMIN` 라우트는 authz-service 인가 판정을 통과해야 한다.
 - 로그인 경로는 rate limit을 적용한다.
 - `OPTIONS`와 `GET /v1/health`, `GET /v1/ready`는 예외 경로다.
+- Gateway의 허용/거부, IP 차단, 헤더 정규화 실패는 `audit-log` 공통 모듈로 발행한다.
 
 ## 전송 보안
 - CORS는 Gateway에서 단일 처리한다.

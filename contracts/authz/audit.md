@@ -1,4 +1,7 @@
-# Authz Audit Contract
+# Authz Audit Producer Contract
+
+Authz 감사 계약은 `audit-log` 공통 모듈에 발행할 이벤트의 범위를 정의한다.
+저장/보존/조회 원칙은 [`contracts/audit-log`](../audit-log/README.md) 를 따른다.
 
 ## 이벤트 생성 시점
 | 시점 | 설명 |
@@ -40,4 +43,5 @@
 | 원칙 | 설명 |
 | --- | --- |
 | 외부 노출 | 감사 API를 별도 외부 엔드포인트로 노출하지 않아도 된다. |
-| 포맷 고정 | 서비스 책임상 감사 포맷과 필드 집합은 계약으로 고정한다. |
+| 포맷 고정 | Authz는 공통 감사 포맷을 준수해 `audit-log`로 발행한다. |
+| 저장 책임 | 저장/보존/조회는 `audit-log` 계약이 담당한다. |

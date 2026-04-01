@@ -26,6 +26,7 @@ MSA 간 인터페이스(라우트, 헤더, 보안, 에러, 환경변수, OpenAPI
 - [Authz](contracts/authz/README.md)
 - [User](contracts/user/README.md)
 - [Redis](contracts/redis/README.md)
+- [Audit Log](contracts/audit-log/README.md)
 - [Gateway](contracts/gateway/README.md)
 - [Editor](contracts/editor/README.md)
 - [Module Ecosystem](docs/module-ecosystem.md)

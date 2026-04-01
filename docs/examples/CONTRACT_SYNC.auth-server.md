@@ -20,6 +20,11 @@
 - `contracts/auth/security.md`
 - `contracts/auth/ops.md`
 - `contracts/auth/errors.md`
+- `contracts/audit-log/README.md`
+- `contracts/audit-log/event-model.md`
+- `contracts/audit-log/service-events.md`
+- `contracts/audit-log/security.md`
+- `contracts/audit-log/ops.md`
 - `contracts/openapi/auth-service.v1.yaml`
 - `contracts/openapi/auth-service.v2.yaml`
 
@@ -32,6 +37,11 @@
   - `auth-v2`
   - `auth-ops`
   - `auth-errors`
+  - `audit-log`
+  - `audit-log-model`
+  - `audit-log-events`
+  - `audit-log-security`
+  - `audit-log-ops`
   - `openapi`
 - Affected Endpoints or Flows:
   - `POST /auth/login`
@@ -60,6 +70,7 @@
 - 쿠키 기반 브라우저 인증과 Bearer 기반 비브라우저 인증을 함께 유지한다.
 - 내부 엔드포인트는 내부 JWT 또는 Gateway 재주입 컨텍스트만 신뢰한다.
 - v2는 MFA, step-up, SSO provider 확장, session lifecycle, account policy 확장, internal management API 확장을 포함한다.
+- 인증 성공/실패, MFA, refresh, logout, session revoke 이벤트는 `audit-log` 계약을 따른다.
 
 ## v2 Notes
 - MFA는 `MfaFactor` 기반으로 TOTP, WebAuthn, 복구 코드를 모두 수용한다.

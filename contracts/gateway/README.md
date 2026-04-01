@@ -14,6 +14,7 @@
 - [환경변수 계약](env.md)
 - [에러 계약](errors.md)
 - [인증 흐름](auth-flow.md)
+- [Audit Log Contract](../audit-log/README.md)
 
 ## 읽는 순서
 1. `responsibility.md`로 Gateway가 맡는 역할을 먼저 본다.

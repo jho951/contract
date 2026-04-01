@@ -45,6 +45,11 @@ AI 에이전트가 서비스 레포를 수정할 때, 계약 Source of Truth를 
   - `contracts/redis/keys.md`
   - `contracts/redis/security.md`
   - `contracts/redis/ops.md`
+  - `contracts/audit-log/README.md`
+  - `contracts/audit-log/event-model.md`
+  - `contracts/audit-log/service-events.md`
+  - `contracts/audit-log/security.md`
+  - `contracts/audit-log/ops.md`
   - `contracts/gateway/errors.md`
   - `contracts/common/env.md`
   - `contracts/openapi/*.yaml`
@@ -70,6 +75,7 @@ AI 에이전트가 서비스 레포를 수정할 때, 계약 Source of Truth를 
 - Explain-page: 계약 API를 소비하는 프론트엔드 UI/플로우 반영
 - Shared modules: `Ui-components-module`, `auth`, `audit-log`, `ip-guard`, `rate-limiter`, `feature-flag`, `policy-config`는 [Module Ecosystem](module-ecosystem.md)를 기준으로 기록한다.
 - All services: 신규 권한/기능/정책 판단은 [Decision Criteria](../contracts/common/decision-criteria.md)를 먼저 따른다.
+- All services: 감사 이벤트는 [Audit Log Contract](../contracts/audit-log/README.md)를 먼저 따른다.
 
 ## 5) PR 체크리스트
 - [ ] 계약 문서 수정 완료

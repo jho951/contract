@@ -26,6 +26,11 @@
 - `contracts/authz/external-boundaries.md`
 - `contracts/authz/rbac.md`
 - `contracts/authz/audit.md`
+- `contracts/audit-log/README.md`
+- `contracts/audit-log/event-model.md`
+- `contracts/audit-log/service-events.md`
+- `contracts/audit-log/security.md`
+- `contracts/audit-log/ops.md`
 - `contracts/authz/security.md`
 - `contracts/authz/ops.md`
 - `contracts/authz/errors.md`
@@ -51,6 +56,11 @@
   - `authz-introspection`
   - `authz-cache`
   - `authz-boundaries`
+  - `audit-log`
+  - `audit-log-model`
+  - `audit-log-events`
+  - `audit-log-security`
+  - `audit-log-ops`
   - `env`
   - `errors`
   - `openapi`
@@ -78,6 +88,7 @@
 - 권한 변경 이벤트는 role 부여/회수, 그룹 변경, 정책 변경을 모두 포함한다.
 - 관리자 권한은 운영자, 보안관리자, 감사자처럼 세분화할 수 있다.
 - introspect는 토큰 유효성과 현재 권한 유효성을 함께 확인한다.
+- Authz 감사 이벤트의 저장/보존 정책은 `audit-log` 계약을 따른다.
 
 ## Validation
 - Commands:

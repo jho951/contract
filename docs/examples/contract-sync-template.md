@@ -42,6 +42,11 @@
 - `contracts/redis/keys.md`
 - `contracts/redis/security.md`
 - `contracts/redis/ops.md`
+- `contracts/audit-log/README.md`
+- `contracts/audit-log/event-model.md`
+- `contracts/audit-log/service-events.md`
+- `contracts/audit-log/security.md`
+- `contracts/audit-log/ops.md`
 - `contracts/common/service-ownership.md`
 - `contracts/common/adoption-matrix.md`
 - `contracts/user/README.md`
@@ -77,6 +82,11 @@
   - `redis-keys`
   - `redis-security`
   - `redis-ops`
+  - `audit-log`
+  - `audit-log-model`
+  - `audit-log-events`
+  - `audit-log-security`
+  - `audit-log-ops`
   - `auth-ops`
   - `auth-errors`
   - `authz-ops`
@@ -85,6 +95,8 @@
   - `user-errors`
   - `service-ownership`
   - `adoption-matrix`
+  - `audit-log`
+  - `audit-log-events`
   - `errors`
   - `env`
   - `openapi`

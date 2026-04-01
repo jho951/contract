@@ -9,6 +9,7 @@
 | RBAC 판정 | `ADMIN`, `MANAGER`, `MEMBER` 기반 권한 매핑 |
 | 감사 추적 | `requestId`, `correlationId`, `decision`, `reason` 기록 |
 | 운영 준비 상태 | DB/Redis ready 체크 제공 |
+| 감사 이벤트 발행 | `audit-log`로 정책/역할/위임/판정 이벤트를 발행 |
 
 ## 문서
 - [API Contract](api.md)
@@ -21,6 +22,7 @@
 - [External Boundaries](external-boundaries.md)
 - [RBAC Contract](rbac.md)
 - [Audit Contract](audit.md)
+- [Audit Log Contract](../audit-log/README.md)
 - [Security Contract](security.md)
 - [Operations Contract](ops.md)
 - [Error Contract](errors.md)
@@ -44,3 +46,4 @@
 | 신뢰 경계 | 외부 주입 trusted header는 Gateway 재주입 값만 신뢰한다. |
 | 공개 범위 | 권한을 프로필에 공개할지 여부는 user-service privacy/visibility 정책이 소유한다. |
 | admin IP guard | 관리자 접근 제한은 `ip-guard` 같은 외부 모듈과 함께 Gateway/Authz 경계에서 적용할 수 있다. |
+| 감사 sink | Authz는 감사 이벤트를 `audit-log` 모듈에 발행하고, 저장/조회 정책은 audit-log 계약을 따른다. |

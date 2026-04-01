@@ -50,6 +50,11 @@
 - `contracts/redis/keys.md`
 - `contracts/redis/security.md`
 - `contracts/redis/ops.md`
+- `contracts/audit-log/README.md`
+- `contracts/audit-log/event-model.md`
+- `contracts/audit-log/service-events.md`
+- `contracts/audit-log/security.md`
+- `contracts/audit-log/ops.md`
 - `contracts/user/README.md`
 - `contracts/user/api.md`
 - `contracts/user/security.md`
@@ -124,6 +129,11 @@
   - `redis-keys`
   - `redis-security`
   - `redis-ops`
+  - `audit-log`
+  - `audit-log-model`
+  - `audit-log-events`
+  - `audit-log-security`
+  - `audit-log-ops`
   - `response`
   - `env`
   - `auth-service`
@@ -156,6 +166,8 @@
   - `Authz cache invalidation`
   - `Authz external boundaries`
   - `Gateway admin IP guard`
+  - `Audit log common module`
+  - `Service audit event emission`
   - `Redis key namespace and cache policy`
   - `Redis operational readiness`
   - `User signup and me`

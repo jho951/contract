@@ -20,6 +20,11 @@
 - `contracts/user/ops.md`
 - `contracts/user/errors.md`
 - `contracts/user/visibility.md`
+- `contracts/audit-log/README.md`
+- `contracts/audit-log/event-model.md`
+- `contracts/audit-log/service-events.md`
+- `contracts/audit-log/security.md`
+- `contracts/audit-log/ops.md`
 - `contracts/openapi/user-service.v1.yaml`
 
 ## Impact Scope
@@ -31,6 +36,11 @@
   - `user-visibility`
   - `user-ops`
   - `user-errors`
+  - `audit-log`
+  - `audit-log-model`
+  - `audit-log-events`
+  - `audit-log-security`
+  - `audit-log-ops`
   - `openapi`
 - Affected Endpoints or Flows:
   - `POST /users/signup`
@@ -49,6 +59,7 @@
 - 내부 사용자 식별은 `X-User-Id`와 내부 JWT를 기준으로 한다.
 - 소셜 연동과 상태 변경은 내부 계약에 따라 멱등성과 정합성을 유지한다.
 - 프로필 가시성/개인정보 공개 정책은 user-service의 별도 계약으로 관리한다.
+- 프로필/가시성/개인정보 변경 이력은 `audit-log` 계약을 따른다.
 
 ## Validation
 - Commands:

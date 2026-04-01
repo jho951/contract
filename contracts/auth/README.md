@@ -15,6 +15,7 @@
 - [Security Contract](security.md)
 - [Operations Contract](ops.md)
 - [Error Contract](errors.md)
+- [Audit Log Contract](../audit-log/README.md)
 - [Auth Service OpenAPI](../openapi/auth-service.v1.yaml)
 - [Auth Service OpenAPI v2](../openapi/auth-service.v2.yaml)
 

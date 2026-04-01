@@ -18,6 +18,7 @@ Use one of these blocks near the top of the backend service README files.
 - Runtime status and JWKS discovery
 - v2: MFA / step-up, multi-provider SSO, session inventory, account policy, internal management API
 - v2 OpenAPI draft: `contracts/openapi/auth-service.v2.yaml`
+- audit events: `contracts/audit-log/README.md`
 ```
 
 ## Authz-server
@@ -36,6 +37,7 @@ Use one of these blocks near the top of the backend service README files.
 - v2: authorization queries, policy-based authz, token claims sync, authz cache, versioning, delegation
 - v2 docs: `contracts/authz/policy-model.md`, `contracts/authz/delegation.md`, `contracts/authz/versioning.md`, `contracts/authz/introspection.md`, `contracts/authz/cache.md`, `contracts/authz/external-boundaries.md`
 - v2 OpenAPI draft: `contracts/openapi/authz-service.v2.yaml`
+- audit events: `contracts/audit-log/README.md`
 ```
 
 ## Redis-server
@@ -50,6 +52,7 @@ Use one of these blocks near the top of the backend service README files.
 - Central cache storage for gateway session and admin permission cache
 - Redis key namespace and TTL policy
 - Connectivity, readiness, and operational validation
+- audit events: `contracts/audit-log/README.md`
 ```
 
 ## User-server
@@ -67,6 +70,7 @@ Use one of these blocks near the top of the backend service README files.
 - By-email and by-social lookup
 - Profile visibility/privacy and permission exposure policy
 - GlobalResponse envelope and success code contract
+- audit events: `contracts/audit-log/README.md`
 ```
 
 ## Notes

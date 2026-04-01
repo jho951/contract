@@ -16,6 +16,7 @@ MSA 전반에서 공유하는 공통 계약 허브다.
 - [Versioning Policy](versioning.md)
 - [Decision Criteria](decision-criteria.md)
 - [Module Ecosystem](../../docs/module-ecosystem.md)
+- [Audit Log](../audit-log/README.md)
 
 ## 서비스 허브
 백엔드 서비스별 세부 계약은 아래 허브에서 확인한다.
@@ -24,4 +25,5 @@ MSA 전반에서 공유하는 공통 계약 허브다.
 - [Authz](../authz/README.md)
 - [User](../user/README.md)
 - [Redis](../redis/README.md)
+- [Audit Log](../audit-log/README.md)
 - [Editor](../editor/README.md)

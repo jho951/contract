@@ -8,6 +8,7 @@
 | `Authz-server` | `main` | 관리자 경로 인가, RBAC 정책, 감사 추적, health/ready, 권한 판정 API |
 | `User-server` | `main` | 사용자 마스터 데이터, 소셜 링크 소유권, 프로필 가시성/개인정보 공개 범위, 내부 사용자 생성/조회 |
 | `Redis-server` | `main` | 캐시/세션 저장 계층 운영 표준, gateway/permission cache prefix 소유 |
+| `audit-log` | `main` | 모든 서비스 감사 이벤트 수집, 정규화, 보존 정책 |
 | `Block-server` | `main` | 문서/블록 도메인, editor backend 데이터 소유 |
 
 ## Contract Consumers
@@ -20,5 +21,6 @@
 - 코드 SoT는 각 서비스 레포
 - 인터페이스 SoT는 본 `contract` 레포
 - `Authz-server`와 `Redis-server`는 Gateway의 인증/인가 캐시 흐름과 직접 연결되므로, 계약 변경 시 Gateway 문서도 함께 갱신한다.
+- `audit-log`는 인증/인가/프로필/편집/운영 이벤트의 공통 감사 허브이므로, 새 이벤트가 추가되면 각 서비스 문서와 함께 갱신한다.
 - 서비스 책임은 구현 세부가 아니라 계약 소유권을 기준으로 정의한다.
 - 권한의 진실은 `Authz-server`, 공개 범위는 `User-server`, 최종 실행은 소비자 서비스가 각자 책임진다.

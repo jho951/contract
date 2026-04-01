@@ -17,6 +17,7 @@
 - [Error Contract](errors.md)
 - [Visibility & Privacy Contract](visibility.md)
 - [V2 Extension](v2-extension.md)
+- [Audit Log Contract](../audit-log/README.md)
 - [User Service OpenAPI](../openapi/user-service.v1.yaml)
 
 ## API 범위
