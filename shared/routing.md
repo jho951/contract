@@ -58,10 +58,12 @@ Client
 | --- | --- | --- |
 | Auth-service | `AUTH_SERVICE_URL` | `http://auth-service:8081` |
 | User-service | `USER_SERVICE_URL` | `http://user-service:8082` |
-| Block/Document service | `BLOCK_SERVICE_URL` | `http://documents-service:8083` |
+| Editor service | `BLOCK_SERVICE_URL` | `http://documents-service:8083` |
 | Authz-service | `AUTHZ_SERVICE_URL` | `http://authz-service:8084` |
 
 ## Notes
 - Gateway는 `/v1` prefix를 strip하거나 route별 rewrite를 적용해 upstream으로 전달한다.
 - Upstream service 문서에는 public `/v1` prefix를 구현 요구사항처럼 적지 않는다.
+- editor/document 도메인 route 변수명은 `BLOCK_SERVICE_URL`을 유지하고, current gateway dev compose는 host 기본값으로 `documents-service`를 사용한다.
+- Authz는 code/문서상 `authz-service`를 기준으로 설명하지만, prod compose service key는 현재 `permission-service`다.
 - Runtime alias인 `GET /v1` 같은 서비스 내부 상태 경로는 public API versioning과 별개다.

@@ -1,6 +1,6 @@
 # Editor Operating Contract
 
-Editor 서버의 운영 계약은 현재 `documents-service` v1 안정성 유지와 v2 전환 준비를 동시에 만족해야 한다.
+Editor 서버의 운영 계약은 repo 이름 `editor-service`와 runtime 이름 `documents-*`가 함께 존재하는 현재 구현을 전제로 한다.
 
 ## 배포 원칙
 - v1 계약은 운영 기준으로 유지한다.
@@ -8,7 +8,10 @@ Editor 서버의 운영 계약은 현재 `documents-service` v1 안정성 유지
 - Node 단일 영속 모델은 별도 미래 검토 문서로만 둔다.
 - `Workspace` backup 코드는 `backup/workspace/` 아래에서만 관리한다.
 - 운영 중 v1 스키마를 깨는 변경은 금지한다.
-- 현재 런타임은 `documents-service:8083`을 기준으로 한다.
+- current compose 기준 런타임 service name은 `documents-service:8083`이다.
+- compose project 이름은 `documents-service-dev`, `documents-service-prod`를 사용한다.
+- application name은 `documents-app`이다.
+- contract 문서에서는 repository 이름을 따라 `editor-service` 디렉토리를 유지하지만, 운영 로그/compose/network alias는 `documents-*` 축으로 나타날 수 있다.
 
 ## 데이터 운영
 - `Document`와 `Block`은 soft delete를 우선한다.

@@ -6,13 +6,13 @@
 | EC2 | Component | Role |
 | --- | --- | --- |
 | EC2-1 | `nginx` | 외부 HTTP/HTTPS 진입점, TLS 종료, reverse proxy |
-| EC2-1 | `gateway-service` | public API routing, 인증 프록시, 공통 헤더 정규화 |
+| EC2-1 | `gateway-service` (`gateway`) | public API routing, 인증 프록시, 공통 헤더 정규화 |
 | EC2-2 | `auth-service` | 로그인, refresh, session, JWT/JWKS |
 | EC2-2 | `user-service` | 사용자 프로필, 상태, visibility |
-| EC2-2 | `authz-service` | 권한 판단, RBAC, policy, introspection |
-| EC2-2 | `editor-service` | 문서/블록 도메인 API |
-| EC2-3 | `redis` | session/cache/rate-limit/policy cache 저장소 |
-| EC2-3 | `monitoring` | Prometheus/Grafana 또는 동등한 모니터링 구성 |
+| EC2-2 | `authz-service` (`permission-service`) | 권한 판단, RBAC, policy, introspection |
+| EC2-2 | `editor-service` (`documents-service`) | 문서/블록 도메인 API |
+| EC2-3 | `redis-service` (`redis-server`, alias `central-redis`) | session/cache/rate-limit/policy cache 저장소 |
+| EC2-3 | `monitoring-service` (`monitoring-server`) | Prometheus/Grafana 또는 동등한 모니터링 구성 |
 
 ## 요청 흐름
 ```txt
@@ -20,7 +20,7 @@ Client
   -> EC2-1 nginx:80/443
   -> EC2-1 gateway-service
   -> EC2-2 auth-service/user-service/authz-service/editor-service
-  -> EC2-3 redis
+  -> EC2-3 redis-service
 
 Monitoring
   -> EC2-1 metrics
@@ -42,8 +42,8 @@ Monitoring
 | EC2-1 `nginx` | `80`, `443` from `0.0.0.0/0` |
 | EC2-1 `gateway-service` | localhost 또는 EC2-1 내부 Docker network only |
 | EC2-2 services | service ports from EC2-1 security group only |
-| EC2-3 `redis` | `6379` from EC2-2 security group, optionally EC2-1 security group |
-| EC2-3 `monitoring` | Grafana from operator IP/VPN only |
+| EC2-3 `redis-service` | `6379` from EC2-2 security group, optionally EC2-1 security group |
+| EC2-3 `monitoring-service` | Grafana from operator IP/VPN only |
 | all EC2 SSH | `22` from operator IP/VPN only |
 
 ## 포트 예시
@@ -55,9 +55,9 @@ Monitoring
 | `gateway-service` | `8080` | EC2-1 local/internal |
 | `auth-service` | `8081` | private |
 | `user-service` | `8082` | private |
-| `editor-service` / `documents-service` | `8083` | private |
-| `authz-service` / `permission-service` | `8084` | private |
-| `redis` | `6379` | private |
+| `editor-service` | `8083` | private |
+| `authz-service` | `8084` | private |
+| `redis-service` | `6379` | private |
 | `prometheus` | `9090` | private/operator only |
 | `grafana` | `3000` | operator only |
 
@@ -89,10 +89,18 @@ Gateway는 EC2-2 service를 private address로 호출한다.
 AUTH_SERVICE_URL: http://10.0.x.x:8081
 USER_SERVICE_URL: http://10.0.x.x:8082
 BLOCK_SERVICE_URL: http://10.0.x.x:8083
-PERMISSION_SERVICE_URL: http://10.0.x.x:8084
-PERMISSION_ADMIN_VERIFY_URL: http://10.0.x.x:8084/permissions/internal/admin/verify
+AUTHZ_SERVICE_URL: http://10.0.x.x:8084
+AUTHZ_ADMIN_VERIFY_URL: http://10.0.x.x:8084/permissions/internal/admin/verify
 REDIS_HOST: 10.0.x.x
 REDIS_PORT: 6379
+```
+
+현재 구현 기준으로 단일 Docker host compose 기본값을 그대로 쓰면 다음 alias가 섞인다.
+
+```yaml
+BLOCK_SERVICE_URL: http://documents-service:8083
+AUTHZ_ADMIN_VERIFY_URL: http://authz-service:8084/permissions/internal/admin/verify
+REDIS_HOST: central-redis
 ```
 
 고정 private IP를 직접 넣는 방식은 단순하지만, EC2 교체 시 설정 변경이 필요하다. 운영 안정성을 높이려면 private DNS, Route 53 private hosted zone, 또는 Docker/Compose network alias 같은 이름 기반 접근을 우선 검토한다.
@@ -102,13 +110,13 @@ REDIS_PORT: 6379
 
 | Service Repo | Current Runtime Shape | EC2 3대 배포 시 확인할 점 |
 | --- | --- | --- |
-| `gateway-service` | `gateway:8080`, prod compose default upstream은 `auth-service:8081`, `user-service:8082`, `documents-service:8083`, `permission-service:8084`, `central-redis:6379` | Docker DNS 이름은 단일 호스트 external network 전제다. EC2 분리 배포에서는 upstream과 Redis host를 EC2 private IP/DNS로 override한다. 현재 prod compose는 `8080:8080`을 publish하므로 Nginx만 접근하도록 host bind 또는 security group을 제한한다. |
-| `auth-service` | prod profile port `8081`, compose service name `auth-service`, MySQL은 `auth-private` internal network | EC2-2에서 실행하고 Gateway만 접근하게 둔다. Redis/User 연동 env가 있으면 EC2-3 Redis와 EC2-2 User private endpoint를 가리키게 한다. |
+| `gateway-service` | compose project `gateway-service`, service key `gateway`, dev default upstream은 `auth-service:8081`, `user-service:8082`, `documents-service:8083`, `authz-service:8084`, `central-redis:6379` | Docker DNS 이름은 단일 호스트 external network 전제다. EC2 분리 배포에서는 upstream과 Redis host를 EC2 private IP/DNS로 override한다. runtime status endpoint는 `/health`, `/ready`이고 public route 계약은 `/v1/health`, `/v1/ready`다. |
+| `auth-service` | prod profile port `8081`, compose service name `auth-service`, MySQL은 `auth-private` internal network, dev host port 기본값은 `8082` | EC2-2에서 실행하고 Gateway만 접근하게 둔다. `.env.example`의 `USER_SERVICE_BASE_URL=http://user-service:8081`은 현재 user runtime과 맞지 않으므로 배포 시 override가 필요하다. |
 | `user-service` | prod profile port `8082`, compose alias `user-service`, MySQL은 `user-private` internal network | EC2-2에서 실행하고 public port publish 없이 Gateway/Auth만 접근하게 둔다. |
-| `editor-service` | `documents-service:8083`, MySQL은 `documents-private` internal network | Gateway의 `BLOCK_SERVICE_URL`은 `8083`으로 맞춘다. prod compose는 `DOCUMENTS_SERVICE_HOST_BIND`로 EC2-2 private IP에 publish한다. |
-| `authz-service` | `permission-service:8084`, Redis는 external 중앙 Redis 사용 | `REDIS_HOST`는 EC2-3 private IP/DNS로 설정한다. prod compose는 `AUTHZ_SERVICE_HOST_BIND`로 EC2-2 private IP에 publish한다. |
-| `redis-service` | prod Redis `6379`, exporter `9121`, password와 bind host required | EC2-3 security group으로 `6379`/`9121` 접근원을 제한한다. `REDIS_BIND_HOST`와 `REDIS_EXPORTER_BIND_HOST`는 EC2-3 private IP로 설정한다. |
-| `monitoring-service` | Prometheus/Grafana/Loki/Promtail compose, Prometheus target은 file discovery 기준 | `monitoring/prometheus/targets/ec2-services.yml`의 target을 실제 EC2 private DNS/IP로 맞춘다. Grafana/Prometheus/Loki host port는 운영자 IP/VPN으로만 열어야 한다. |
+| `editor-service` | compose project `documents-service-*`, service key/alias `documents-service:8083`, app name `documents-app`, MySQL은 `documents-private` internal network | Gateway의 `BLOCK_SERVICE_URL`은 current implementation 기준 `http://documents-service:8083`으로 맞춘다. prod compose는 `DOCUMENTS_SERVICE_HOST_BIND`로 EC2-2 private IP에 publish한다. |
+| `authz-service` | base compose service key `authz-service`, prod override service key `permission-service:8084`, Redis는 external 중앙 Redis 사용 | `REDIS_HOST`는 EC2-3 private IP/DNS로 설정한다. prod compose는 `AUTHZ_SERVICE_HOST_BIND`로 EC2-2 private IP에 publish한다. env/terraform에는 `PERMISSION_*` 계열이 아직 남아 있다. |
+| `redis-service` | compose project `redis-server-*`, service key `redis-server`, alias `central-redis`, exporter `central-redis-exporter` | EC2-3 security group으로 `6379`/`9121` 접근원을 제한한다. 예제 env는 `SHARED_SERVICE_NETWORK=backend-shared`를 사용하므로 실제 backbone 이름과 맞춰야 한다. |
+| `monitoring-service` | compose project `monitoring-server`, Prometheus/Grafana/Loki/Promtail compose, target은 file discovery 기준 | `monitoring/prometheus/targets/ec2-services.yml`의 target을 실제 EC2 private DNS/IP로 맞춘다. Grafana host 기본 포트는 `3005`, target label은 `api-gateway-server`, `authz-service`, `redis-server`처럼 실제 구현 파일 값을 따른다. |
 
 현재 서비스 compose들은 대부분 `service-backbone-shared` external Docker network를 전제로 한다. 이 네트워크 이름은 한 EC2 안의 컨테이너 간 DNS에는 유효하지만, EC2 간 DNS로 동작하지 않는다. 따라서 3대 EC2 배포에서는 다음 둘 중 하나를 선택한다.
 
@@ -120,13 +128,13 @@ REDIS_PORT: 6379
 
 | Repo | Prod Setting |
 | --- | --- |
-| `gateway-service` | `GATEWAY_HOST_BIND` 기본값은 `127.0.0.1`로 두고 Nginx만 Gateway host port에 접근하게 한다. `AUTH_SERVICE_URL`, `USER_SERVICE_URL`, `BLOCK_SERVICE_URL`, `REDIS_HOST`는 prod compose에서 required로 둔다. |
+| `gateway-service` | `GATEWAY_HOST_BIND` 개념보다는 현재 prod compose가 `8080:8080`을 직접 publish한다. EC2-1에서는 host bind 또는 security group으로 Nginx만 접근하게 제한해야 한다. `AUTH_SERVICE_URL`, `USER_SERVICE_URL`, `BLOCK_SERVICE_URL`, `REDIS_HOST`는 prod compose에서 required다. |
 | `auth-service` | `AUTH_SERVICE_HOST_BIND`와 `AUTH_SERVICE_HOST_PORT`로 EC2-2 private IP에 `8081`을 publish한다. |
 | `user-service` | `USER_SERVICE_HOST_BIND`와 `USER_SERVICE_HOST_PORT`로 EC2-2 private IP에 `8082`를 publish한다. |
 | `editor-service` | `DOCUMENTS_SERVICE_HOST_BIND`와 `DOCUMENTS_SERVICE_HOST_PORT`로 EC2-2 private IP에 `8083`을 publish한다. `/actuator/prometheus` 노출을 위해 actuator와 Prometheus registry를 포함한다. |
-| `authz-service` | prod compose의 embedded Redis를 제거하고 `REDIS_HOST`를 required로 둔다. `AUTHZ_SERVICE_HOST_BIND`와 `AUTHZ_SERVICE_HOST_PORT`로 EC2-2 private IP에 `8084`를 publish한다. |
+| `authz-service` | prod compose의 embedded Redis를 제거하고 `REDIS_HOST`를 required로 둔다. prod service key는 `permission-service`지만 publish 변수는 `AUTHZ_SERVICE_HOST_BIND`, `AUTHZ_SERVICE_HOST_PORT`를 사용한다. |
 | `redis-service` | `REDIS_PASSWORD`, `REDIS_BIND_HOST`, `REDIS_EXPORTER_BIND_HOST`를 prod compose에서 required로 둔다. `REDIS_BIND_HOST`와 exporter bind host는 EC2-3 private IP를 사용한다. |
-| `monitoring-service` | Prometheus/Grafana/Loki host port는 기본 `127.0.0.1` bind다. Prometheus target은 `monitoring/prometheus/targets/ec2-services.yml` file discovery로 관리한다. |
+| `monitoring-service` | Prometheus/Grafana/Loki host port는 기본 `127.0.0.1` bind다. Grafana host 기본 포트는 `3005`다. Prometheus target은 `monitoring/prometheus/targets/ec2-services.yml` file discovery로 관리한다. |
 
 EC2 private IP bind 변수는 DNS 이름이 아니라 실제 host interface IP여야 한다. 예를 들어 EC2-2 private IP가 `10.0.0.10`이면 `AUTH_SERVICE_HOST_BIND=10.0.0.10`, `USER_SERVICE_HOST_BIND=10.0.0.10`, `DOCUMENTS_SERVICE_HOST_BIND=10.0.0.10`, `AUTHZ_SERVICE_HOST_BIND=10.0.0.10`처럼 설정한다.
 

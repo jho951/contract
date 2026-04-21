@@ -10,8 +10,8 @@
 | Monitoring | https://github.com/jho951/monitoring-service | main | `contract.lock.yml` | adopted | metrics/logs/dashboard/alert 운영 계약을 소유 |
 | audit-log | https://github.com/jho951/audit-log | main | `contract.lock.yml` | adopted | 전 서비스 공통 감사 이벤트 수집과 증적 보존을 소유 |
 | Editor | https://github.com/jho951/editor-service | dev | `contract.lock.yml` | adopted | 문서/블록 API 계약을 소유 |
-| Editor-page | https://github.com/jho951/Editor-page | master | `contract.lock.yml` | adopted | editor UI 소비자 |
-| Explain-page | https://github.com/jho951/Explain-page | main | `contract.lock.yml` | adopted | 설명 UI 소비자 |
+| Editor-page | https://github.com/jho951/Editor-page | master | 없음 | partial | editor UI 소비자. 현재 구현은 Gateway를 직접 호출하지만 `contract.lock.yml`은 아직 없음 |
+| Explain-page | https://github.com/jho951/Explain-page | main | 없음 | partial | 설명 UI 소비자. Gateway cookie auth를 사용하지만 `contract.lock.yml`은 아직 없음 |
 
 ## 운영 기준
 - `adopted`는 서비스 레포가 `contract.lock.yml`을 통해 contract ref/SHA를 고정하고 CI 계약 검증을 수행하는 상태를 의미한다.
@@ -19,3 +19,4 @@
 - `Monitoring`은 서비스 runtime 진실을 소유하지 않고, scrape target, dashboard, alert, log collection 운영 기준을 소유한다.
 - `audit-log`는 모든 서비스가 공통으로 사용하는 감사 모듈이므로, 새 이벤트 타입이 생기면 서비스 레포와 contract 레포를 함께 갱신한다.
 - `User`는 profile visibility/privacy 정책도 함께 다루므로, 공개 필드 변화가 있으면 contract와 서비스 README를 같이 갱신한다.
+- frontend 두 레포는 현재 contract 문서를 소비하지만, lock 파일과 contract-check workflow는 아직 정식 도입 전 상태다.

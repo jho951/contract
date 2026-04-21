@@ -32,3 +32,4 @@
 | 접근 추적 | Redis 접속 실패와 인증 실패는 운영 로그에 남긴다. |
 | secret management | Redis password는 repo에 저장하지 않는다. |
 | shared network | 서비스 간 접근은 공용 backbone 네트워크를 사용한다. |
+| service discovery | Compose 기본 host는 `redis-service`를 사용한다. |

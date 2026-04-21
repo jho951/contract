@@ -3,7 +3,7 @@
 AI 에이전트가 서비스 레포를 수정할 때, `service-contract`를 기준으로 일관된 변경을 만들기 위한 실행 절차입니다.
 
 ## 1) 기본 원칙
-- 코드 Source of Truth: 각 서비스 레포(`gateway/auth/authz/user/redis/block/monitoring`)
+- 코드 Source of Truth: 각 서비스 레포(`gateway/auth/authz/user/editor/redis/monitoring`)
 - 인터페이스 Source of Truth: 이 `contract` 레포
 - 순서: `contract 변경 -> 서비스 구현 변경`
 

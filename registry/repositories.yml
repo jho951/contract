@@ -67,12 +67,26 @@ repositories:
     lock: contract.lock.yml
     role: gateway
     status: adopted
+    runtime:
+      compose_project: gateway-service
+      compose_service: gateway
+      container_port: 8080
+      runtime_health_path: /health
+      runtime_ready_path: /ready
+      public_health_path: /v1/health
+      public_ready_path: /v1/ready
+      upstream_defaults:
+        auth_service_url: http://auth-service:8081
+        user_service_url: http://user-service:8082
+        block_service_url: http://documents-service:8083
+        authz_admin_verify_url: http://authz-service:8084/permissions/internal/admin/verify
+        redis_host: central-redis
     ci: *ci_spring_boot
     cd:
       <<: *cd_ec2_compose
       port: 8080
-      health_path: /v1/health
-      ready_path: /v1/ready
+      health_path: /health
+      ready_path: /ready
   - name: auth-service
     github: https://github.com/jho951/auth-service
     branch: main
@@ -80,6 +94,13 @@ repositories:
     lock: contract.lock.yml
     role: backend-service
     status: adopted
+    runtime:
+      compose_project: auth-service
+      compose_service: auth-service
+      container_port: 8081
+      dev_host_port: 8082
+      shared_network: service-backbone-shared
+      private_network: auth-private
     ci: *ci_spring_boot
     cd:
       <<: *cd_ec2_compose
@@ -93,6 +114,15 @@ repositories:
     lock: contract.lock.yml
     role: backend-service
     status: adopted
+    runtime:
+      compose_project: authz-service
+      compose_service_dev: authz-service
+      compose_service_prod: permission-service
+      container_port: 8084
+      redis_host_default_dev: central-redis
+      env_prefixes:
+        - AUTHZ_
+        - PERMISSION_
     ci: *ci_spring_boot
     cd:
       <<: *cd_ec2_compose
@@ -106,6 +136,11 @@ repositories:
     lock: contract.lock.yml
     role: backend-service
     status: adopted
+    runtime:
+      compose_service: user-service
+      container_port: 8082
+      shared_network: service-backbone-shared
+      private_network: user-private
     ci: *ci_spring_boot
     cd:
       <<: *cd_ec2_compose
@@ -119,6 +154,15 @@ repositories:
     lock: contract.lock.yml
     role: backend-service
     status: adopted
+    runtime:
+      compose_project_dev: documents-service-dev
+      compose_project_prod: documents-service-prod
+      compose_service: documents-service
+      container_port: 8083
+      application_name: documents-app
+      private_network: documents-private
+      host_bind_var: DOCUMENTS_SERVICE_HOST_BIND
+      host_port_var: DOCUMENTS_SERVICE_HOST_PORT
     ci: *ci_spring_boot
     cd:
       <<: *cd_ec2_compose
@@ -132,6 +176,14 @@ repositories:
     lock: contract.lock.yml
     role: infra
     status: adopted
+    runtime:
+      compose_project_dev: redis-server-dev
+      compose_project_prod: redis-server-prod
+      compose_service: redis-server
+      shared_aliases:
+        - central-redis
+      exporter_container_default: central-redis-exporter
+      shared_network_example_env: backend-shared
     ci: *ci_infra
     cd:
       <<: *cd_ec2_compose
@@ -145,10 +197,20 @@ repositories:
     lock: contract.lock.yml
     role: observability-runtime
     status: adopted
+    runtime:
+      compose_project: monitoring-server
+      grafana_container_port: 3000
+      grafana_host_port_default: 3005
+      prometheus_port: 9090
+      loki_port: 3100
+      target_labels:
+        gateway: api-gateway-server
+        authz: authz-service
+        redis: redis-server
     ci: *ci_infra
     cd:
       <<: *cd_ec2_compose
-      port: 3000
+      port: 3005
       health_path: /api/health
       ready_path: /api/health
   - name: audit-log
@@ -163,16 +225,32 @@ repositories:
   - name: editor-page
     github: https://github.com/jho951/Editor-page
     branch: master
-    lock: contract.lock.yml
+    contract: repositories/editor-page
+    lock: null
     role: frontend
-    status: adopted
+    status: partial
+    runtime:
+      framework: vite-react
+      browser_entrypoint: gateway-service
+      gateway_base_env: VITE_GATEWAY_BASE_URL
+      gateway_base_default: http://localhost:8080
+      path_strategy: base-without-v1_endpoints-with-v1
+      credentials_mode: withCredentials
     ci: *ci_frontend
     cd: *cd_frontend_static
   - name: explain-page
     github: https://github.com/jho951/Explain-page
     branch: main
-    lock: contract.lock.yml
+    contract: repositories/explain-page
+    lock: null
     role: frontend
-    status: adopted
+    status: partial
+    runtime:
+      framework: nextjs
+      browser_entrypoint: gateway-service
+      gateway_base_env: NEXT_PUBLIC_GATEWAY_BASE_URL
+      gateway_base_default: http://localhost:8080
+      path_strategy: base-with-v1_endpoints-without-v1
+      credentials_mode: include
     ci: *ci_frontend
     cd: *cd_frontend_static

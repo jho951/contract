@@ -114,8 +114,7 @@ Auth-service는 `/v1/auth/*` 또는 `/v2/auth/*`를 직접 소유하지 않는�
 - [Operations Contract](ops.md): 운영 점검과 smoke validation
 - [Error Contract](errors.md): auth-service error code
 - [Gateway Auth Proxy](../gateway-service/auth-proxy.md): public route와 upstream route 매핑
-- [Auth Service OpenAPI v1](../../artifacts/openapi/auth-service.v1.yaml)
-- [Auth Public API OpenAPI v2](../../artifacts/openapi/auth-service.v2.yaml)
+- [Auth Upstream OpenAPI v1](../../artifacts/openapi/auth-service.upstream.v1.yaml)
 
 ## 계약 원칙
 - Auth-service는 인증 원천이다.

@@ -6,13 +6,14 @@
 | 항목            | 값                                        |
 |---------------|------------------------------------------|
 | Repo          | https://github.com/jho951/editor-service |
-| Branch        | `main`                                   |
+| Branch        | `dev`                                    |
 | Contract Lock | `contract.lock.yml`                      |
 
 ## 현재 v1
 - [Schema v1](schema-v1.md)
 - [Rules v1](rules-v1.md)
 - [API v1](api.md)
+- [OpenAPI v1](../../artifacts/openapi/editor-service.v1.yaml)
 - [Persistence & Migration](db-migration.md)
 - [Authorization & Ownership](authz.md)
 - [Operations Semantics](operations.md)
@@ -29,7 +30,7 @@
 - [Schema v2](schema-v2.md)
 - [Rules v2](rules-v2.md)
 - [API v2](api-v2.md)
-- [v2 OpenAPI](../../artifacts/openapi/editor.v2.yaml)
+- 현재 OpenAPI artifact는 v1만 발행했고, v2 경로/shape는 위 문서를 기준으로 관리한다.
 
 ## 범위
 - v1 활성 범위는 `Document`와 `Block`이다.

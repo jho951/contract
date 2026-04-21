@@ -11,14 +11,16 @@
 - `AUTH_SERVICE_URL=http://auth-service:8081`
 - `USER_SERVICE_URL=http://user-service:8082`
 - `BLOCK_SERVICE_URL=http://documents-service:8083`
-- `PERMISSION_SERVICE_URL=http://authz-service:8084`
-- `PERMISSION_ADMIN_VERIFY_URL=http://authz-service:8084/permissions/internal/admin/verify`
+- `AUTHZ_SERVICE_URL=http://authz-service:8084`
+- `AUTHZ_ADMIN_VERIFY_URL=http://authz-service:8084/permissions/internal/admin/verify`
 - `REDIS_HOST=central-redis`
 - `REDIS_PORT=6379`
 - `GATEWAY_CORS_ALLOWED_ORIGINS=*`
 - `GATEWAY_FORWARD_AUTHORIZATION_HEADER=false`
 - `REDIS_PASSWORD`와 `REDIS_TIMEOUT_MS`는 Redis 연결 안정화를 위한 선택값이다.
-- 코드 기본값은 `REDIS_HOST=127.0.0.1`이지만, Docker/compose 기본값은 `central-redis`다.
+- 코드 기본값은 `REDIS_HOST=127.0.0.1`이지만, current gateway dev compose 기본값은 `central-redis`다.
+- current gateway dev compose는 `BLOCK_SERVICE_URL=http://documents-service:8083`를 기본값으로 둔다.
+- prod compose는 upstream URL을 env로 강제하고, terraform 예제에도 `documents-service`, `central-redis`가 남아 있다.
 - `GATEWAY_FORWARD_AUTHORIZATION_HEADER`는 현재 핸들러의 주요 경로에서는 사용되지 않고, 호환성/전환용 설정으로 남아 있다.
 - 현재 구현은 외부 `Authorization`을 그대로 전달하지 않고 제거한 뒤, 인증 성공 시 내부 JWT만 다시 넣는다.
 
@@ -86,13 +88,15 @@ Bearer 토큰 검증 결과를 캐싱할 때 사용하는 설정이다.
 - 타입: `string`
 - 기본값: `gateway:admin-permission:`
 
-### `PERMISSION_SERVICE_URL`
+### `AUTHZ_SERVICE_URL`
 - 타입: `string`
 - 기본값: `http://authz-service:8084`
 - 설명:
   - 관리자 경로 인가 판정용 Authz 기본 URI다.
+- 비고:
+  - current authz prod compose service key는 `permission-service`다. 운영에서는 env override로 실제 host를 맞춘다.
 
-### `PERMISSION_ADMIN_VERIFY_URL`
+### `AUTHZ_ADMIN_VERIFY_URL`
 - 타입: `string`
 - 기본값: `http://authz-service:8084/permissions/internal/admin/verify`
 - 설명:
@@ -278,8 +282,10 @@ Bearer 토큰 검증 결과를 캐싱할 때 사용하는 설정이다.
 - `AUTH_JWT_ALGORITHM`은 실제 auth-service 설정과 일치시킨다
 - RSA 계열이면 `AUTH_JWT_PUBLIC_KEY_PEM` 설정
 - HS 계열이면 `AUTH_JWT_SHARED_SECRET` 설정
-- `PERMISSION_SERVICE_URL=http://authz-service:8084`
-- `PERMISSION_ADMIN_VERIFY_URL=http://authz-service:8084/permissions/internal/admin/verify`
+- `BLOCK_SERVICE_URL=http://documents-service:8083`
+- `AUTHZ_SERVICE_URL=http://authz-service:8084`
+- `AUTHZ_ADMIN_VERIFY_URL=http://authz-service:8084/permissions/internal/admin/verify`
+- `REDIS_HOST=central-redis`
 - `AUTH_JWT_AUDIENCE`는 정책이 있으면 명시, 없으면 비움
 - 운영 환경에서는 `GATEWAY_INTERNAL_REQUEST_SECRET`과 IP guard 목록도 명시하는 것이 좋다.
 

@@ -16,8 +16,8 @@ Use one of these blocks near the top of the backend service README files.
 - Session validate, session alias, me
 - Internal auth account create/delete
 - Runtime status and JWKS discovery
+- current upstream OpenAPI: `artifacts/openapi/auth-service.upstream.v1.yaml`
 - v2: MFA / step-up, multi-provider SSO, session inventory, account policy, internal management API
-- v2 OpenAPI draft: `artifacts/openapi/auth-service.v2.yaml`
 - audit events: `shared/audit.md`
 ```
 
@@ -34,9 +34,9 @@ Use one of these blocks near the top of the backend service README files.
 - `POST /permissions/internal/admin/verify`
 - `GET /health`, `GET /ready`
 - RBAC policy evaluation and audit logging
+- current upstream OpenAPI: `artifacts/openapi/authz-service.upstream.v1.yaml`
 - v2: authorization queries, policy-based authz, token claims sync, authz cache, versioning, delegation
 - v2 docs: `repositories/authz-service/policy-model.md`, `repositories/authz-service/policy-engine.md`, `repositories/authz-service/delegation.md`, `repositories/authz-service/versioning.md`, `repositories/authz-service/introspection.md`, `repositories/authz-service/cache.md`, `repositories/authz-service/external-boundaries.md`
-- v2 OpenAPI draft: `artifacts/openapi/authz-service.v2.yaml`
 - audit events: `shared/audit.md`
 ```
 

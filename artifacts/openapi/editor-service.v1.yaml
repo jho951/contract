@@ -1,0 +1,730 @@
+openapi: 3.0.3
+info:
+  title: editor-service Upstream API 문서
+  version: 1.0.0
+  description: |
+    현재 `editor-service` 구현의 upstream `/documents/**`, `/admin/**` 계약이다.
+    외부 public `/v1/**` route는 Gateway가 소유하고, editor-service는 upstream path를 소유한다.
+servers:
+  - url: /
+    description: editor-service 직접 호출 기본 경로
+
+tags:
+  - name: Document
+    description: 문서와 블록 조회 및 변경 API
+  - name: Admin
+    description: 관리자 블록 조작 API
+  - name: Actuator
+    description: Spring Boot Actuator 운영 endpoint
+
+paths:
+  /documents:
+    get:
+      tags: [Document]
+      summary: 문서 목록 조회
+      operationId: listDocuments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 문서 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentListResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+    post:
+      tags: [Document]
+      summary: 문서 생성
+      operationId: createDocument
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDocumentRequest'
+      responses:
+        '201':
+          description: 문서 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /documents/trash:
+    get:
+      tags: [Document]
+      summary: 휴지통 문서 목록 조회
+      operationId: listTrashDocuments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 휴지통 문서 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrashDocumentListResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /documents/{documentId}:
+    get:
+      tags: [Document]
+      summary: 문서 단건 조회
+      operationId: getDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: 문서 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+    patch:
+      tags: [Document]
+      summary: 문서 수정
+      operationId: updateDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDocumentRequest'
+      responses:
+        '200':
+          description: 문서 수정 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+    delete:
+      tags: [Document]
+      summary: 문서 삭제
+      operationId: deleteDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: 문서 삭제 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoidGlobalResponse'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /documents/{documentId}/blocks:
+    get:
+      tags: [Document]
+      summary: 문서 블록 목록 조회
+      operationId: getDocumentBlocks
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: 블록 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockListResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /documents/{documentId}/visibility:
+    patch:
+      tags: [Document]
+      summary: 문서 공개 범위 수정
+      operationId: updateDocumentVisibility
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDocumentVisibilityRequest'
+      responses:
+        '200':
+          description: 공개 범위 수정 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /documents/{documentId}/transactions:
+    post:
+      tags: [Document]
+      summary: 문서 transaction 반영
+      operationId: applyDocumentTransaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentTransactionRequest'
+      responses:
+        '200':
+          description: transaction 반영 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentTransactionResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /documents/{documentId}/trash:
+    patch:
+      tags: [Document]
+      summary: 문서 휴지통 이동
+      operationId: trashDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: 휴지통 이동 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoidGlobalResponse'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /documents/{documentId}/restore:
+    post:
+      tags: [Document]
+      summary: 휴지통 문서 복구
+      operationId: restoreDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: 문서 복구 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoidGlobalResponse'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /documents/{documentId}/move:
+    post:
+      tags: [Document]
+      summary: 문서 이동
+      operationId: moveDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveDocumentRequest'
+      responses:
+        '200':
+          description: 문서 이동 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoidGlobalResponse'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /admin/documents/{documentId}/blocks:
+    post:
+      tags: [Admin]
+      summary: 관리자 블록 생성
+      operationId: createAdminBlock
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentTransactionRequest'
+      responses:
+        '200':
+          description: 블록 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentTransactionResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /admin/blocks/{blockId}:
+    patch:
+      tags: [Admin]
+      summary: 관리자 블록 수정
+      operationId: updateAdminBlock
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BlockId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentTransactionRequest'
+      responses:
+        '200':
+          description: 블록 수정 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentTransactionResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+    delete:
+      tags: [Admin]
+      summary: 관리자 블록 삭제
+      operationId: deleteAdminBlock
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BlockId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentTransactionRequest'
+      responses:
+        '200':
+          description: 블록 삭제 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentTransactionResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /admin/blocks/{blockId}/move:
+    post:
+      tags: [Admin]
+      summary: 관리자 블록 이동
+      operationId: moveAdminBlock
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BlockId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentTransactionRequest'
+      responses:
+        '200':
+          description: 블록 이동 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentTransactionResponseEnvelope'
+        default:
+          $ref: '#/components/responses/EditorError'
+
+  /actuator/health:
+    get:
+      tags: [Actuator]
+      summary: Actuator health 조회
+      operationId: getActuatorHealth
+      responses:
+        '200':
+          description: Spring Boot Actuator health 응답
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActuatorHealthResponse'
+
+  /actuator/health/readiness:
+    get:
+      tags: [Actuator]
+      summary: Actuator readiness 조회
+      operationId: getActuatorReadiness
+      responses:
+        '200':
+          description: Spring Boot Actuator readiness 응답
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActuatorHealthResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    DocumentId:
+      name: documentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BlockId:
+      name: blockId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    EditorError:
+      description: editor-service 오류 응답
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/VoidGlobalResponse'
+
+  schemas:
+    GlobalResponseBase:
+      type: object
+      required: [httpStatus, success, message, code]
+      properties:
+        httpStatus:
+          type: string
+          example: OK
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: 요청 응답 성공
+        code:
+          type: integer
+          example: 200
+    VoidGlobalResponse:
+      allOf:
+        - $ref: '#/components/schemas/GlobalResponseBase'
+        - type: object
+          properties:
+            data:
+              nullable: true
+    DocumentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        icon:
+          type: object
+          additionalProperties: true
+          nullable: true
+        cover:
+          type: object
+          additionalProperties: true
+          nullable: true
+        visibility:
+          type: string
+          enum: [PUBLIC, PRIVATE]
+        sortKey:
+          type: string
+        createdBy:
+          type: string
+        updatedBy:
+          type: string
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    BlockResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        documentId:
+          type: string
+          format: uuid
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        type:
+          type: string
+          example: TEXT
+        content:
+          type: object
+          additionalProperties: true
+        sortKey:
+          type: string
+        createdBy:
+          type: string
+        updatedBy:
+          type: string
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+        version:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TrashDocumentResponse:
+      type: object
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        deletedAt:
+          type: string
+          format: date-time
+        purgeAt:
+          type: string
+          format: date-time
+    DocumentTransactionAppliedOperationResponse:
+      type: object
+      properties:
+        opId:
+          type: string
+        status:
+          type: string
+          enum: [APPLIED, NO_OP]
+        tempId:
+          type: string
+          nullable: true
+        blockId:
+          type: string
+          format: uuid
+          nullable: true
+        version:
+          type: integer
+          nullable: true
+        sortKey:
+          type: string
+          nullable: true
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+    DocumentTransactionResponse:
+      type: object
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        documentVersion:
+          type: integer
+        batchId:
+          type: string
+        appliedOperations:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentTransactionAppliedOperationResponse'
+    DocumentResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/GlobalResponseBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DocumentResponse'
+    DocumentListResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/GlobalResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/DocumentResponse'
+    BlockListResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/GlobalResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/BlockResponse'
+    TrashDocumentListResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/GlobalResponseBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/TrashDocumentResponse'
+    DocumentTransactionResponseEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/GlobalResponseBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DocumentTransactionResponse'
+    CreateDocumentRequest:
+      type: object
+      required: [title]
+      properties:
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        icon:
+          type: object
+          additionalProperties: true
+          nullable: true
+        cover:
+          type: object
+          additionalProperties: true
+          nullable: true
+    UpdateDocumentRequest:
+      type: object
+      required: [title, version]
+      properties:
+        title:
+          type: string
+        icon:
+          type: object
+          additionalProperties: true
+          nullable: true
+        cover:
+          type: object
+          additionalProperties: true
+          nullable: true
+        version:
+          type: integer
+    UpdateDocumentVisibilityRequest:
+      type: object
+      required: [visibility, version]
+      properties:
+        visibility:
+          type: string
+          enum: [PUBLIC, PRIVATE]
+        version:
+          type: integer
+    MoveDocumentRequest:
+      type: object
+      properties:
+        targetParentId:
+          type: string
+          format: uuid
+          nullable: true
+        afterDocumentId:
+          type: string
+          format: uuid
+          nullable: true
+        beforeDocumentId:
+          type: string
+          format: uuid
+          nullable: true
+    DocumentTransactionRequest:
+      type: object
+      required: [clientId, batchId, operations]
+      properties:
+        clientId:
+          type: string
+        batchId:
+          type: string
+        operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentTransactionOperationRequest'
+    DocumentTransactionOperationRequest:
+      type: object
+      required: [opId, type]
+      properties:
+        opId:
+          type: string
+        type:
+          type: string
+          enum: [BLOCK_CREATE, BLOCK_REPLACE_CONTENT, BLOCK_MOVE, BLOCK_DELETE]
+        blockRef:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          nullable: true
+        content:
+          type: object
+          additionalProperties: true
+          nullable: true
+        parentRef:
+          type: string
+          nullable: true
+        afterRef:
+          type: string
+          nullable: true
+        beforeRef:
+          type: string
+          nullable: true
+    ActuatorHealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: UP
+        components:
+          type: object
+          additionalProperties: true
+

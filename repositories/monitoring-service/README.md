@@ -24,6 +24,7 @@
 - [Targets Contract](targets.md)
 - [Security Contract](security.md)
 - [Operations Contract](ops.md)
+- [Monitoring Ops OpenAPI](../../artifacts/openapi/monitoring-service.ops.v1.yaml)
 - [Common Audit Contract](../../shared/audit.md)
 
 ## 계약 원칙
@@ -33,3 +34,6 @@
 - Grafana, Prometheus, Loki 접근은 operator IP/VPN 또는 private network로 제한한다.
 - credential, token, cookie, internal secret은 metrics label이나 log body에 남기지 않는다.
 - target 추가/삭제, 공통 label 변경, alert rule 변경은 contract 변경으로 보고 `contract.lock.yml`을 갱신한다.
+- 현재 구현 repo의 compose project 이름은 `monitoring-server`다.
+- Grafana host 기본 포트는 compose 기준 `3005 -> 3000`이다.
+- README, target file, compose label 사이에 `gateway`, `api-gateway-server`, `permission-service`, `redis-server` 같은 이름이 함께 쓰인다.

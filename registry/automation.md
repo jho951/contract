@@ -84,7 +84,7 @@ jobs:
 
       - name: Validate contract lock
         env:
-          SERVICE_NAME: gateway
+          SERVICE_NAME: gateway-service
         run: |
           test -f contract.lock.yml
           grep -q "repo: https://github.com/jho951/service-contract" contract.lock.yml
@@ -115,14 +115,14 @@ contract:
   commit: abc1234
 
 service:
-  name: auth
+  name: auth-service
   branch: main
   role: backend-service
   consumes:
     - shared/headers.md
     - shared/errors.md
     - repositories/auth-service/**
-    - artifacts/openapi/auth-service.v2.yaml
+    - artifacts/openapi/auth-service.upstream.v1.yaml
 
 validation:
   contract_lock: true

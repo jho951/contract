@@ -45,4 +45,4 @@ Gateway는 외부 public API의 진입점이다. Public route versioning, 인증
 - [Common Headers](../../shared/headers.md)
 - [Common Security](../../shared/security.md)
 - [Common Audit](../../shared/audit.md)
-- [Gateway Edge OpenAPI](../../artifacts/openapi/gateway-edge.v1.yaml)
+- [Gateway Public OpenAPI](../../artifacts/openapi/gateway-service.public.v1.yaml)

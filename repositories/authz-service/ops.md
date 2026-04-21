@@ -8,6 +8,7 @@
 
 ## Operational Flows
 - 권한 판정 성공은 `200`, 거부는 `403`, 입력 오류는 `400`이다.
+- 내부 caller proof는 실행 모드에 따라 `Authorization: Bearer <internal-service-jwt>` 또는 `X-Internal-Request-Secret`로 전달한다.
 - `X-Request-Id`와 `X-Correlation-Id`가 없으면 서버가 생성할 수 있다.
 - L1 인메모리 캐시와 L2 Redis 캐시를 사용한다.
 - Redis 장애 시 판정 API는 DB fallback을 유지하고, readiness는 `DOWN`일 수 있다.
@@ -21,7 +22,7 @@
 - `./gradlew bootRun`
 - `curl -i http://localhost:8084/health`
 - `curl -i http://localhost:8084/ready`
-- `curl -i -X POST http://localhost:8084/permissions/internal/admin/verify -H 'X-User-Id: admin-seed' -H 'X-Session-Id: session-seed' -H 'X-Original-Method: GET' -H 'X-Original-Path: /v1/admin/blocks' -H 'X-Request-Id: debug-req-1' -H 'X-Correlation-Id: debug-corr-1'`
+- `curl -i -X POST http://localhost:8084/permissions/internal/admin/verify -H 'Authorization: Bearer <internal-service-jwt>' -H 'X-User-Id: admin-seed' -H 'X-Original-Method: GET' -H 'X-Original-Path: /v1/admin/blocks' -H 'X-Request-Id: debug-req-1' -H 'X-Correlation-Id: debug-corr-1'`
 
 ## Notes
 - 내부 엔드포인트는 Gateway 또는 내부 네트워크에서만 호출한다.

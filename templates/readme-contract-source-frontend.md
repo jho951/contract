@@ -34,5 +34,6 @@ Use one of these blocks near the top of the frontend README files.
 
 ## Notes
 - Keep this section near the top of the README, right after the project summary.
-- Keep the pinned contract ref and consumed contract list in `contract.lock.yml`.
+- If the frontend has already adopted lock-based sync, keep the pinned contract ref and consumed contract list in `contract.lock.yml`.
+- If the current implementation has not introduced `contract.lock.yml` yet, say that explicitly in the README and track the consumed contract docs in a local requirements/runbook doc instead.
 - If the page uses only a subset of the contract, list the specific docs and UI flows in `contract.lock.yml`.

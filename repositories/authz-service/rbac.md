@@ -3,8 +3,9 @@
 ## 입력 컨텍스트
 | 헤더 | 역할 |
 | --- | --- |
+| `Authorization` | JWT/HYBRID 모드의 internal caller proof |
+| `X-Internal-Request-Secret` | LEGACY_SECRET/HYBRID 모드의 internal caller proof |
 | `X-User-Id` | 사용자 식별 |
-| `X-Session-Id` | 세션 식별 보조값 |
 | `X-Original-Method` | 원본 메서드 |
 | `X-Original-Path` | 원본 경로 |
 | `X-Request-Id` | 추적용 |

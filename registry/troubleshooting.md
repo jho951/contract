@@ -55,7 +55,7 @@
 - 라우트는 맞지만 upstream 호출이 실패한다.
 
 ##### 원인
-- `AUTH_SERVICE_URL`, `PERMISSION_SERVICE_URL`, `USER_SERVICE_URL` 중 하나가 잘못됨
+- `AUTH_SERVICE_URL`, `AUTHZ_SERVICE_URL`, `USER_SERVICE_URL`, `BLOCK_SERVICE_URL` 중 하나가 잘못됨
 - shared network alias가 누락됨
 - upstream 서비스가 다른 브랜치/포트로 떠 있음
 
@@ -66,8 +66,9 @@
 
 ##### 조치
 1. `./scripts/msa-stack.sh ps`로 컨테이너 이름과 포트를 본다.
-2. `authz-service` alias가 network에 붙었는지 확인한다.
-3. Gateway 환경변수가 `http://authz-service:8084`를 바라보는지 확인한다.
+2. current 배포가 dev면 `authz-service`, prod면 `permission-service`로 떠 있는지 확인한다.
+3. Gateway 환경변수가 실제 authz host를 바라보는지 확인한다.
+4. editor/document upstream은 current 구현 기준 `documents-service:8083`인지 확인한다.
 
 #### 3. Gateway가 로그인 이후에도 세션을 못 찾음
 ##### 증상
@@ -275,7 +276,7 @@
 ##### 확인
 - `repositories/authz-service/v2.md`
 - `repositories/authz-service/policy-engine.md`
-- `artifacts/openapi/authz-service.v2.yaml`
+- `repositories/authz-service/versioning.md`
 
 ##### 조치
 1. v1과 v2가 같은 기준 데이터인지 확인한다.
@@ -293,7 +294,7 @@
 
 ##### 확인
 - `repositories/authz-service/api.md`
-- `artifacts/openapi/authz-service.v1.yaml`
+- `artifacts/openapi/authz-service.upstream.v1.yaml`
 
 ##### 조치
 1. 요청 헤더를 문서와 비교한다.
@@ -330,7 +331,7 @@
 
 ##### 확인
 - `repositories/gateway-service/auth-proxy.md`
-- `artifacts/openapi/authz-service.v1.yaml`
+- `artifacts/openapi/authz-service.upstream.v1.yaml`
 
 ##### 조치
 1. Gateway가 전달하는 실제 path를 로그로 확인한다.
@@ -455,7 +456,7 @@
 ##### 원인
 - 비밀번호 불일치
 - host/port 오타
-- Redis가 `central-redis`가 아닌 다른 이름으로 떠 있음
+- Redis가 `redis-server` / `central-redis`가 아닌 다른 이름으로 떠 있거나 shared network가 맞지 않음
 
 ##### 확인
 - `repositories/redis-service/ops.md`
@@ -463,7 +464,8 @@
 
 ##### 조치
 1. `redis-cli PING`으로 직접 확인한다.
-2. 서비스별 Redis host 설정을 맞춘다.
+2. Gateway/Authz/terraform 예시는 `central-redis`, Redis repo service key는 `redis-server`를 쓰는지 확인한다.
+3. Redis 예제 env의 `backend-shared`와 실제 shared network 이름이 같은지 확인한다.
 
 #### 3. 키 prefix가 섞임
 ##### 증상
@@ -686,7 +688,7 @@
 ##### 확인
 - `registry/deployment-topology.md`
 - `repositories/editor-service/README.md`
-- `artifacts/openapi/block-service.v1.yaml`
+- `repositories/editor-service/api.md`
 
 ##### 조치
 1. Block 서버 브랜치와 실행 스크립트를 맞춘다.
@@ -702,7 +704,7 @@
 
 ##### 확인
 - `repositories/gateway-service/env.md`
-- `artifacts/openapi/authz-service.v1.yaml`
+- `artifacts/openapi/authz-service.upstream.v1.yaml`
 
 ##### 조치
 1. 문서상 책임명은 `Authz`로 본다.

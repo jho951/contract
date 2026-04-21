@@ -16,7 +16,7 @@
   - `repositories/auth-service/security.md`
   - `repositories/auth-service/ops.md`
   - `repositories/auth-service/errors.md`
-  - `artifacts/openapi/auth-service.v2.yaml`
+  - `artifacts/openapi/auth-service.upstream.v1.yaml`
   - `repositories/authz-service/README.md`
   - `repositories/authz-service/api.md`
   - `repositories/authz-service/v2.md`
@@ -32,7 +32,7 @@
   - `repositories/authz-service/security.md`
   - `repositories/authz-service/ops.md`
   - `repositories/authz-service/errors.md`
-  - `artifacts/openapi/authz-service.v2.yaml`
+  - `artifacts/openapi/authz-service.upstream.v1.yaml`
   - `repositories/redis-service/README.md`
   - `repositories/redis-service/keys.md`
   - `repositories/redis-service/security.md`

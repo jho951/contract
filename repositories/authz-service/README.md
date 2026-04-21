@@ -35,8 +35,7 @@
 - [Security Contract](security.md)
 - [Operations Contract](ops.md)
 - [Error Contract](errors.md)
-- [Authz OpenAPI](../../artifacts/openapi/authz-service.v1.yaml)
-- [Authz OpenAPI v2](../../artifacts/openapi/authz-service.v2.yaml)
+- [Authz Upstream OpenAPI v1](../../artifacts/openapi/authz-service.upstream.v1.yaml)
 
 ## API
 | Method | Path | Purpose |
@@ -49,7 +48,8 @@
 | 원칙 | 설명 |
 | --- | --- |
 | 위임 대상 | Gateway는 `/admin/**`, `/v1/admin/**`를 Authz로 위임한다. |
-| 입력 헤더 | `X-User-Id`, `X-Session-Id`, `X-Original-Method`, `X-Original-Path` |
+| 내부 인증 | `Authorization: Bearer <internal-service-jwt>` 또는 `X-Internal-Request-Secret` |
+| 입력 헤더 | `X-User-Id`, `X-Original-Method`, `X-Original-Path` |
 | 추적 헤더 | `X-Request-Id`, `X-Correlation-Id` |
 | 판정 기준 | `X-User-Id`로 조회한 role/permission과 요청 메서드/경로/resource/action 규칙 |
 | 신뢰 경계 | 외부 주입 trusted header는 Gateway 재주입 값만 신뢰한다. |

@@ -13,7 +13,7 @@ service:
     - shared/security.md
     - shared/errors.md
     - repositories/auth-service/**
-    - artifacts/openapi/auth-service.v2.yaml
+    - artifacts/openapi/auth-service.upstream.v1.yaml
 
 validation:
   contract_lock: true

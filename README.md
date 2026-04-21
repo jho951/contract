@@ -34,6 +34,8 @@ Frontend -> Gateway -> Auth / Authz / User / Editor / Redis / Monitoring
 | [repositories/authz-service](repositories/authz-service/README.md) | 권한 판단, RBAC, policy, introspection |
 | [repositories/user-service](repositories/user-service/README.md) | 사용자 프로필, 상태, visibility |
 | [repositories/editor-service](repositories/editor-service/README.md) | 문서/블록 편집 도메인 계약 |
+| [repositories/editor-page](repositories/editor-page/README.md) | editor UI의 Gateway 소비 계약 |
+| [repositories/explain-page](repositories/explain-page/README.md) | explain UI의 Gateway/SSO 소비 계약 |
 | [repositories/redis-service](repositories/redis-service/README.md) | Redis key, cache, ops 계약 |
 | [repositories/monitoring-service](repositories/monitoring-service/README.md) | metrics, logs, dashboard, alert 운영 계약 |
 | [artifacts/schemas](artifacts/schemas) | 공통 JSON Schema |
@@ -77,3 +79,26 @@ service-contract 계약 변경
 | Editor/Document | https://github.com/jho951/editor-service |
 | Monitoring | https://github.com/jho951/monitoring-service |
 | Frontend | https://github.com/jho951/Editor-page, https://github.com/jho951/Explain-page |
+
+## Frontend Baseline
+| Frontend | Current API Base Pattern | Auth Transport | Notes |
+| --- | --- | --- | --- |
+| `Editor-page` | base URL는 `http://localhost:8080`, endpoint 상수에 `/v1/**` 포함 | cookie, `withCredentials=true` | `/v1/auth/**`, `/v1/documents/**`, `/v1/editor-operations/**`를 Gateway로 호출한다. |
+| `Explain-page` | base URL를 `http://localhost:8080/v1`로 정규화하고 path는 `/auth/**` 사용 | cookie, `credentials: "include"` | `/v1` 중복 없이 Gateway auth/session API를 조립한다. |
+
+- 두 프론트 모두 현재 구현에는 `contract.lock.yml`이 없다.
+- 두 프론트 모두 backend 개별 서비스가 아니라 Gateway를 단일 브라우저 진입점으로 사용한다.
+
+## Current Implementation Baseline
+| Service | Current compose/project shape | Port | Exposure | Notes |
+| --- | --- | --- | --- | --- |
+| Gateway | project `gateway-service`, service `gateway` | `8080` | public entry | 외부 ingress와 public `/v1/**` 소유. runtime status endpoint는 `/health`, `/ready`도 함께 노출한다. |
+| Auth | project/service `auth-service` | `8081` container, dev host `8082` | private | 인증 원천, JWT/JWKS, session |
+| Authz | base compose `authz-service`, prod override `permission-service` | `8084` | private | 관리자 인가, RBAC/policy. env/terraform에는 `PERMISSION_*` 계열이 아직 남아 있다. |
+| User | service `user-service` | `8082` | private | 사용자 마스터/소셜/visibility |
+| Editor | project `documents-service-*`, service `documents-service` | `8083` | private | repo 이름은 `editor-service`지만 runtime/app identity는 `documents-*` 축을 사용한다. |
+| Redis | project `redis-server-*`, service `redis-server`, alias `central-redis` | `6379` | private | 캐시/세션 저장 계층. exporter container 기본 이름은 `central-redis-exporter`다. |
+| Monitoring | project `monitoring-server` | Prometheus `9090`, Grafana host default `3005`, Loki `3100` | operator/private | Grafana container는 `3000`을 쓰지만 compose host 기본값은 `3005`다. |
+
+- contract의 서비스 디렉토리 이름은 repository 이름을 유지한다.
+- 현재 구현은 `documents-service`, `permission-service`, `central-redis`, `redis-server`, `monitoring-server` 같은 legacy/runtime 이름이 함께 존재한다.
