@@ -13,6 +13,7 @@
 | [docker-compose.single-ec2.service.override.yml](docker-compose.single-ec2.service.override.yml) | backend service용 shared network/restart 정책 템플릿 |
 | [docker-compose.single-ec2.gateway-public.override.yml](docker-compose.single-ec2.gateway-public.override.yml) | gateway 외부 공개용 override 템플릿 |
 | [docker-compose.single-ec2.redis-alias.override.yml](docker-compose.single-ec2.redis-alias.override.yml) | Redis canonical alias와 legacy alias를 같이 주는 override 템플릿 |
+| [nginx.single-ec2.conf.example](nginx.single-ec2.conf.example) | `api`, `editor`, `explain`, `grafana` 도메인을 내부 포트로 라우팅하는 Nginx 예시 |
 | [env/](env/) | 서비스별 `.env.prod` 예시 템플릿 |
 | [overrides/](overrides/) | 실제 서비스 레포 compose 구조에 맞춘 concrete override 파일 |
 | [scripts/](scripts/) | 실제 서비스 레포를 순서대로 올리는 단일 EC2 실행 스크립트 |
@@ -27,6 +28,8 @@
 6. `scripts/deploy-single-ec2-service.sh` 또는 `scripts/deploy-single-ec2-stack.sh`로 실행한다.
 7. `service-backbone-shared` network에 모든 서비스를 붙인다.
 8. `redis -> auth -> user -> authz -> editor -> gateway` 순으로 이미지를 pull한 뒤 실행한다.
+9. 외부 공개는 `nginx.single-ec2.conf.example` 또는 [../../shared/single-ec2-edge-routing.md](../../shared/single-ec2-edge-routing.md) 기준으로 Nginx에 붙인다.
+10. 현재 `full-stack user_data`와 배포 스크립트는 backend 7개를 기본 자동화 범위로 보고, `editor-page`, `explain-page`, Nginx는 후속 단계에서 별도로 반영한다.
 
 ## 실제 실행
 

@@ -86,11 +86,27 @@
 - README와 운영 문서를 ECR/image-only 기준으로 갱신
 - `contract.lock.yml`의 image registry를 ECR로 수정
 
+### editor-page
+
+- prod compose를 `EDITOR_PAGE_IMAGE` 기반 image-only로 전환
+- `docker/docker-compose.build.yml`을 추가해 build 전용 경로를 분리
+- `scripts/run.docker.sh`를 dev build/prod pull 구조로 정리
+- `ci.yml`, `cd.yml`을 추가해 ECR build/push와 remote pull 배포를 표준화
+
+### explain-page
+
+- prod compose를 `EXPLAIN_PAGE_IMAGE` 기반 image-only로 전환
+- `docker/docker-compose.build.yml`을 추가해 Next.js standalone build를 CI 전용으로 분리
+- `scripts/run.docker.sh`를 dev build/prod pull 구조로 정리
+- `cd.yml`을 추가해 ECR build/push와 remote pull 배포를 표준화
+
 ## 4. 공통 문서/템플릿 변경
 
 - [shared/ci-cd.md](./ci-cd.md): image stage, ECR naming, immutable tag, build/run 분리 규칙 추가
 - [shared/single-ec2-deployment.md](./single-ec2-deployment.md): single EC2 운영에서도 image-only 배포 규칙 반영
+- [shared/single-ec2-edge-routing.md](./single-ec2-edge-routing.md): backend 7개와 frontend 2개를 함께 노출하는 최종 포트/도메인/Nginx 기준 추가
 - [templates/single-ec2/README.md](../templates/single-ec2/README.md): ECR image URI 주입 기준 반영
+- [templates/single-ec2/nginx.single-ec2.conf.example](../templates/single-ec2/nginx.single-ec2.conf.example): EC2 reverse proxy 예시 추가
 - [templates/single-ec2/env/](../templates/single-ec2/env/): 서비스별 `*_IMAGE` 변수 추가
 - [templates/contract-lock-template.yml](../templates/contract-lock-template.yml): 기본 image registry를 ECR로 변경
 - [templates/github-actions-contract-check.yml](../templates/github-actions-contract-check.yml): ECR login 예시로 변경

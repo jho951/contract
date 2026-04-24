@@ -220,7 +220,7 @@ redis-service
 
 서비스별 endpoint 기본값:
 
-- `gateway-service` -> `https://api.example.com`
+- `gateway-service` -> `https://api.myeditor.n-e.kr`
 - `auth-service` -> `http://auth.internal.platform.local`
 - `user-service` -> `http://user.internal.platform.local`
 - `authz-service` -> `http://authz.internal.platform.local`
