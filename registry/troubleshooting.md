@@ -1964,3 +1964,66 @@ git diff --check
 1. `main/master`는 `prod`, `dev` branch는 `dev`, `tag`는 `prod`로 분기 규칙을 고정한다.
 2. `prod` bundle이 참조하는 repo 이름과 workflow가 push하는 repo prefix를 맞춘다.
 3. 잘못 올라간 이미지 때문에 생긴 runtime mismatch는 새 `prod` 이미지 배포 후 다시 확인한다.
+
+### 47. `editor-service`가 `UnknownHostException: mysql`로 죽고 `/v1/documents/**`가 502면 공용 `SPRING_DATASOURCE_*`가 user 설정으로 새고 있는지 본다
+
+#### 증상
+- `https://api.myeditor.n-e.kr/v1/documents` 또는 `/v1/documents/trash`가 `502`를 반환한다.
+- `editor-service` 컨테이너가 재시작을 반복한다.
+- 로그에 `UnknownHostException: mysql` 또는 user DB 접속 문자열이 찍힌다.
+
+#### 원인
+- single-EC2 `.env.backend`에 남아 있는 공용 `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`가 `editor-service`까지 덮어쓴다.
+- `editor-service`는 canonical host `editor-mysql`을 봐야 하는데, user DB용 `mysql`/`user-mysql` 값으로 부팅하다가 죽는다.
+
+#### 확인
+- `docker inspect editor-service-prod | grep SPRING_DATASOURCE`
+- `docker logs editor-service-prod`
+- `/opt/deploy/.env.backend`에 공용 `SPRING_DATASOURCE_*`가 남아 있는지
+
+#### 조치
+1. `editor-service` compose environment에서 `SPRING_DATASOURCE_*`를 `DB_URL_PROD`, `DB_USERNAME_PROD`, `DB_PASSWORD_PROD` 기반으로 고정한다.
+2. `.env.backend`에서 공용 `SPRING_DATASOURCE_*`를 제거하고, user는 `USER_SPRING_DATASOURCE_*`, authz는 `AUTHZ_SPRING_DATASOURCE_*`처럼 서비스별 prefix를 쓴다.
+3. `editor-service`만 다시 recreate해서 `401/403` 등 정상 upstream 응답으로 바뀌는지 확인한다.
+
+### 48. `authz-service`가 `Cannot load driver class: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}`로 죽으면 prod bundle에 datasource 자체가 빠져 있다
+
+#### 증상
+- `authz-service`가 계속 재시작한다.
+- 로그에 `Cannot load driver class: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}` 또는 datasource placeholder가 그대로 찍힌다.
+- gateway의 관리자 인가 호출이 불안정하거나 관련 요청이 `5xx`로 튄다.
+
+#### 원인
+- `service-authz` 앱은 `prod`에서도 datasource env를 필수로 읽는다.
+- 그런데 service repo의 prod compose와 구형 single-EC2 bundle에는 `SPRING_DATASOURCE_*`가 빠져 있었다.
+
+#### 확인
+- `docker logs <authz-service-container>`
+- `service-authz/app/src/main/resources/application.yml`
+- `/opt/deploy/docker-compose.backend.yml`의 `authz-service.environment`
+
+#### 조치
+1. single-EC2 bundle에 `authz-mysql`을 추가한다.
+2. `authz-service`에 `AUTHZ_SPRING_DATASOURCE_URL`, `AUTHZ_SPRING_DATASOURCE_USERNAME`, `AUTHZ_SPRING_DATASOURCE_PASSWORD`, `AUTHZ_SPRING_DATASOURCE_DRIVER_CLASS_NAME`를 명시한다.
+3. `authz-mysql`과 `authz-service`를 함께 recreate한다.
+4. `service-authz` repo의 prod compose도 동일하게 datasource env를 보강한다.
+
+### 49. `authz-service`가 DB 연결 후에도 `platform.security.rate-limit.enabled must be true in production for preset API_SERVER`로 죽으면 editor용 platform env가 새고 있다
+
+#### 증상
+- `authz-service`가 datasource 오류는 사라졌는데도 계속 재시작한다.
+- 로그에 `Platform security operational policy violation: platform.security.rate-limit.enabled must be true in production for preset API_SERVER`가 찍힌다.
+
+#### 원인
+- 공용 `.env.backend`에 들어 있는 `PLATFORM_SECURITY_SERVICE_ROLE_PRESET=API_SERVER`, `PLATFORM_GOVERNANCE_AUDIT_SERVICE_NAME=gateway-service` 같은 값이 `authz-service`까지 그대로 전달된다.
+- Authz 기본 preset은 `INTERNAL_SERVICE`인데 editor/gateway용 platform env가 누수되면 production fail-fast가 걸린다.
+
+#### 확인
+- `docker logs <authz-service-container>`
+- `/opt/deploy/.env.backend`의 `PLATFORM_*` 전역 키
+- `docker-compose.backend.yml`의 `authz-service.environment`
+
+#### 조치
+1. `authz-service` compose에 `PLATFORM_SECURITY_SERVICE_ROLE_PRESET=INTERNAL_SERVICE`를 명시한다.
+2. 현재 이미지 기준으로는 `AUTHZ_PLATFORM_SECURITY_RATE_LIMIT_ENABLED=false`, `PLATFORM_GOVERNANCE_AUDIT_SERVICE_NAME=authz-service`도 같이 명시한다.
+3. editor도 `EDITOR_PLATFORM_*` 전용 값으로 다시 고정해서 공용 env 누수를 줄인다.

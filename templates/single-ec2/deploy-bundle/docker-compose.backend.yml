@@ -128,7 +128,9 @@ services:
       - ./.env.backend
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://user-mysql:3306/${MYSQL_DATABASE:-user_service}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true}
+      SPRING_DATASOURCE_URL: ${USER_SPRING_DATASOURCE_URL:-jdbc:mysql://user-mysql:3306/${MYSQL_DATABASE:-user_service}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true}
+      SPRING_DATASOURCE_USERNAME: ${USER_SPRING_DATASOURCE_USERNAME:-${MYSQL_USER_USER_SERVICE:-user_service}}
+      SPRING_DATASOURCE_PASSWORD: ${USER_SPRING_DATASOURCE_PASSWORD:-${MYSQL_PASSWORD_USER_SERVICE:?MYSQL_PASSWORD_USER_SERVICE is required}}
     depends_on:
       user-mysql:
         condition: service_healthy
@@ -140,6 +142,36 @@ services:
         aliases:
           - user-service
 
+  authz-mysql:
+    image: ${AUTHZ_MYSQL_IMAGE:-mysql:8.0}
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${AUTHZ_MYSQL_DATABASE:-authz_service_db}
+      MYSQL_USER: ${AUTHZ_MYSQL_USER:-authz_user}
+      MYSQL_PASSWORD: ${AUTHZ_MYSQL_PASSWORD:?AUTHZ_MYSQL_PASSWORD is required}
+      MYSQL_ROOT_PASSWORD: ${AUTHZ_MYSQL_ROOT_PASSWORD:?AUTHZ_MYSQL_ROOT_PASSWORD is required}
+      TZ: ${TZ:-Asia/Seoul}
+    volumes:
+      - authz-mysql-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -h
+        - 127.0.0.1
+        - -uroot
+        - -p${AUTHZ_MYSQL_ROOT_PASSWORD}
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      authz-private:
+        aliases:
+          - authz-mysql
+
   authz-service:
     image: ${AUTHZ_SERVICE_IMAGE:?AUTHZ_SERVICE_IMAGE is required}
     pull_policy: always
@@ -148,9 +180,21 @@ services:
       - ./.env.backend
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: ${AUTHZ_SPRING_DATASOURCE_URL:-jdbc:mysql://authz-mysql:3306/${AUTHZ_MYSQL_DATABASE:-authz_service_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      SPRING_DATASOURCE_USERNAME: ${AUTHZ_SPRING_DATASOURCE_USERNAME:-${AUTHZ_MYSQL_USER:-authz_user}}
+      SPRING_DATASOURCE_PASSWORD: ${AUTHZ_SPRING_DATASOURCE_PASSWORD:-${AUTHZ_MYSQL_PASSWORD:?AUTHZ_MYSQL_PASSWORD is required}}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${AUTHZ_SPRING_DATASOURCE_DRIVER_CLASS_NAME:-com.mysql.cj.jdbc.Driver}
+      PLATFORM_GOVERNANCE_AUDIT_SERVICE_NAME: ${AUTHZ_PLATFORM_GOVERNANCE_AUDIT_SERVICE_NAME:-authz-service}
+      PLATFORM_GOVERNANCE_AUDIT_ENVIRONMENT: ${AUTHZ_PLATFORM_GOVERNANCE_AUDIT_ENVIRONMENT:-prod}
+      PLATFORM_SECURITY_SERVICE_ROLE_PRESET: ${AUTHZ_PLATFORM_SECURITY_SERVICE_ROLE_PRESET:-INTERNAL_SERVICE}
+      PLATFORM_SECURITY_RATE_LIMIT_ENABLED: ${AUTHZ_PLATFORM_SECURITY_RATE_LIMIT_ENABLED:-false}
+    depends_on:
+      authz-mysql:
+        condition: service_healthy
     expose:
       - "8084"
     networks:
+      authz-private: {}
       service-shared:
         aliases:
           - authz-service
@@ -197,6 +241,8 @@ services:
       SPRING_DATASOURCE_URL: ${DB_URL_PROD:-jdbc:mysql://editor-mysql:3306/${DB_NAME_PROD:-documentsdb}?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci&serverTimezone=Asia/Seoul}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME_PROD:-documents}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD_PROD:?DB_PASSWORD_PROD is required}
+      PLATFORM_GOVERNANCE_SERVICE_ROLE_PRESET: ${EDITOR_PLATFORM_GOVERNANCE_SERVICE_ROLE_PRESET:-${PLATFORM_GOVERNANCE_SERVICE_ROLE_PRESET:-RESOURCE_SERVICE}}
+      PLATFORM_SECURITY_SERVICE_ROLE_PRESET: ${EDITOR_PLATFORM_SECURITY_SERVICE_ROLE_PRESET:-${PLATFORM_SECURITY_SERVICE_ROLE_PRESET:-API_SERVER}}
     networks:
       editor-private: {}
       service-shared:
@@ -310,6 +356,7 @@ volumes:
   redis-logs:
   auth-mysql-data:
   user-mysql-data:
+  authz-mysql-data:
   editor-mysql-data:
   editor-resource-data:
   prometheus-data:
@@ -325,6 +372,9 @@ networks:
     driver: bridge
     internal: true
   user-private:
+    driver: bridge
+    internal: true
+  authz-private:
     driver: bridge
     internal: true
   editor-private:

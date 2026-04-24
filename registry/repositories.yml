@@ -114,7 +114,7 @@ repositories:
       health_path: /health
       ready_path: /ready
   - name: authz-service
-    github: https://github.com/jho951/authz-service
+    github: https://github.com/jho951/service-authz
     branch: main
     contract: repositories/authz-service
     lock: contract.lock.yml
@@ -127,6 +127,7 @@ repositories:
       container_port: 8084
       dev_private_network: authz-private
       dev_mysql_service: authz-mysql
+      prod_mysql_service: authz-mysql
       redis_host_default_dev: redis
       internal_auth_default_mode: HYBRID
       metrics_path: /actuator/prometheus
