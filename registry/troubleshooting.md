@@ -1518,3 +1518,105 @@ git diff --check
 - `BlockServiceImplTest`에 root-first delete 경로 검증을 추가하거나 갱신한다.
 - `EditorOperationApiIntegrationTest`의 existing block delete 성공 케이스가 실제 DB에서 통과하는지 확인한다.
 - 로컬 dev docker 재기동 후 `POST /v1/editor-operations/documents/{documentId}/save` + `BLOCK_DELETE` 수동 요청으로 다시 확인한다.
+
+### 27. gateway-service CI prod compose validation은 placeholder env를 비워 두면 `GATEWAY_INTERNAL_JWT_SHARED_SECRET is required`로 바로 멈춘다
+
+#### 증상
+- GitHub Actions `Validate Compose config` 단계가 `touch "$RUNNER_TEMP/gateway-empty.env"` 직후 실패한다.
+- 로그에 `required variable GATEWAY_INTERNAL_JWT_SHARED_SECRET is missing a value`가 찍힌다.
+- dev compose config 검증은 통과하는데 prod compose config 검증만 실패한다.
+
+#### 원인
+- `service-gateway/.github/workflows/ci.yml`의 `COMPOSE_CONFIG_COMMAND`가 빈 env 파일을 만든 뒤 prod compose required 값을 inline shell env로 일부만 채운다.
+- 그런데 `service-gateway/docker/prod/compose.yml`은 `GATEWAY_INTERNAL_JWT_SHARED_SECRET`를 `:?` required로 강제하는데, CI 명령이 그 값을 안 올리고 있었다.
+- 반대로 `service-gateway/docker/dev/compose.yml`은 같은 값을 dev 기본값으로 fallback하므로 dev 검증은 통과한다.
+- 같은 저장소의 `service-gateway/.github/workflows/cd.yml`에는 이미 placeholder 값이 있었기 때문에 CI와 CD가 서로 drift 난 상태였다.
+
+#### 확인
+- `service-gateway/.github/workflows/ci.yml`
+- `service-gateway/.github/workflows/cd.yml`
+- `service-gateway/docker/prod/compose.yml`
+- `service-gateway/docker/dev/compose.yml`
+- `repositories/gateway-service/env.md`
+
+#### 조치
+1. CI prod compose validation 명령에 `GATEWAY_INTERNAL_JWT_SHARED_SECRET=ci-gateway-internal-jwt-secret` 같은 placeholder 값을 추가한다.
+2. CI와 CD의 prod compose validation env set를 같은 기준으로 맞춘다.
+3. `touch "$RUNNER_TEMP/gateway-empty.env"` 자체는 유지해도 되지만, prod `:?` required 값은 모두 shell env 또는 `--env-file`로 interpolation 단계에 올려야 한다.
+4. 재검증은 GitHub Actions의 `Validate Compose config` 단계 또는 같은 `docker compose -f docker/compose.yml -f docker/prod/compose.yml config` 명령으로 한다.
+
+### 28. `grafana.myeditor.n-e.kr`는 문서에 있어도 DNS가 없으면 접속 전에 `Could not resolve host`로 막힌다
+
+#### 증상
+- 브라우저나 `curl`에서 `grafana.myeditor.n-e.kr` 접속 시 DNS 해석 실패가 난다.
+- `myeditor.n-e.kr`, `api.myeditor.n-e.kr`는 열리는데 Grafana 서브도메인만 안 열린다.
+- 운영 문서에는 Grafana 공개 호스트가 있는데 실제 공개 주소는 없어서 혼란이 생긴다.
+
+#### 원인
+- `service-contract`의 edge routing/Nginx 예시는 `grafana.myeditor.n-e.kr`를 공개 엔드포인트로 정의하지만, 실제 DNS 레코드가 없으면 외부 클라이언트는 Nginx까지 도달하지 못한다.
+- Grafana 컨테이너는 기본적으로 `127.0.0.1:3005` bind라서 direct host port 공개가 아니라 DNS + Nginx reverse proxy가 전제다.
+
+#### 확인
+- `shared/single-ec2-edge-routing.md`
+- `templates/single-ec2/nginx.single-ec2.conf.example`
+- `templates/single-ec2/env/monitoring-service.env.prod.example`
+- `dig +short myeditor.n-e.kr`
+- `dig +short grafana.myeditor.n-e.kr`
+
+#### 조치
+1. `grafana.myeditor.n-e.kr`를 현재 edge EC2/Nginx와 같은 public IP 또는 EIP로 향하게 `A` 레코드 또는 동등한 `CNAME`으로 등록한다.
+2. 이미 `*.myeditor.n-e.kr` 와일드카드 DNS가 있으면 별도 레코드가 필요 없는지 먼저 확인한다.
+3. DNS 등록 후에는 `curl -I http://grafana.myeditor.n-e.kr` 또는 브라우저로 실제 Nginx 응답까지 확인한다.
+4. DNS만 맞춰도 HTTPS는 별도 문제일 수 있으므로 TLS 인증서와 `443` server block을 이어서 본다.
+
+### 29. `grafana.myeditor.n-e.kr`는 HTTP는 `/login`까지 가도 TLS SAN과 `443` server block이 없으면 HTTPS가 깨진다
+
+#### 증상
+- `http://grafana.myeditor.n-e.kr`는 `302 /login`으로 보이는데 `https://grafana.myeditor.n-e.kr`는 인증서 오류가 난다.
+- `curl` 기준 `SSL: no alternative certificate subject name matches target host name 'grafana.myeditor.n-e.kr'`가 찍힌다.
+- 경우에 따라 `443`에서 잘못된 가상호스트로 떨어져 `404` JSON 같은 엉뚱한 응답이 보인다.
+
+#### 원인
+- 활성 Nginx 설정에 `grafana.myeditor.n-e.kr`용 `listen 80` server block만 있고 `listen 443 ssl` server block이 없을 수 있다.
+- 기존 Certbot 인증서 `myeditor.n-e.kr`가 `myeditor.n-e.kr`, `api.myeditor.n-e.kr`, `editor.myeditor.n-e.kr`만 SAN에 포함하고 `grafana.myeditor.n-e.kr`는 빠져 있을 수 있다.
+- 즉 DNS가 살아 있어도 Nginx HTTPS 라우팅과 인증서 SAN이 같이 맞지 않으면 Grafana HTTPS는 정상 공개가 아니다.
+
+#### 확인
+- `sudo nginx -T`
+- `sudo certbot certificates`
+- `/etc/nginx/conf.d/myeditor.conf`
+- `curl -I http://grafana.myeditor.n-e.kr`
+- `curl -I https://grafana.myeditor.n-e.kr`
+
+#### 조치
+1. Grafana upstream은 계속 `http://127.0.0.1:3005`를 사용하고, 외부 공개는 Nginx가 맡게 둔다.
+2. Certbot을 쓰는 서버라면 기존 cert name을 그대로 확장해서 `grafana.myeditor.n-e.kr`를 SAN에 추가한다.
+3. 예시는 `sudo certbot --nginx --cert-name myeditor.n-e.kr -d myeditor.n-e.kr -d api.myeditor.n-e.kr -d editor.myeditor.n-e.kr -d grafana.myeditor.n-e.kr --expand --redirect --non-interactive`다.
+4. 적용 후 `sudo certbot certificates`에서 SAN 목록에 `grafana.myeditor.n-e.kr`가 보이고, `sudo nginx -T`에 `grafana`용 `listen 443 ssl`과 `80 -> 443` redirect가 생성됐는지 확인한다.
+5. 최종 검증은 `curl -I https://grafana.myeditor.n-e.kr`가 인증서 오류 없이 `302 /login` 또는 Grafana 로그인 화면 응답을 반환하는지로 한다.
+
+### 30. gateway-service EC2 CD가 전체 stack `pull`을 돌리면 gateway와 무관한 Docker Hub 이미지 timeout으로도 실패할 수 있다
+
+#### 증상
+- gateway-service CD에서 ECR login과 gateway image pull은 성공했는데, 배포 단계 중간에 `mysql:8.0` 또는 다른 서드파티 이미지 pull에서 실패한다.
+- 로그에 `Image mysql:8.0 Error Head "https://registry-1.docker.io/v2/library/mysql/manifests/8.0"` 또는 `auth.docker.io/token` timeout이 찍힌다.
+- 실패 로그를 보면 `prod-gateway-service:<sha>`는 이미 `Pulled`인데, 전체 배포 job은 실패로 끝난다.
+
+#### 원인
+- gateway-service repo의 EC2 CD가 원격에서 `./scripts/deploy-stack.sh up`를 호출하면, deploy bundle 스크립트가 `backend pull`과 `frontend pull`로 전체 스택 이미지를 다시 당긴다.
+- 이때 gateway 배포와 무관한 `mysql:8.0`, `mysql:8.4`, `oliver006/redis_exporter` 같은 외부 registry 이미지까지 함께 pull된다.
+- 따라서 gateway 이미지 자체는 정상이어도 Docker Hub 네트워크 지연이나 token endpoint timeout 때문에 배포 전체가 실패할 수 있다.
+
+#### 확인
+- `templates/single-ec2/deploy-bundle/scripts/deploy-stack.sh`
+- `templates/single-ec2/deploy-bundle/docker-compose.backend.yml`
+- `service-gateway/.github/workflows/cd.yml`
+- EC2에서 `grep '^GATEWAY_IMAGE=' /opt/deploy/.env.backend`
+- EC2에서 `docker compose --env-file /opt/deploy/.env.backend -f /opt/deploy/docker-compose.backend.yml ps gateway-service`
+
+#### 조치
+1. gateway-service CD는 전체 stack deploy script 대신 `gateway-service`만 대상으로 `docker compose pull gateway-service && docker compose up -d gateway-service`를 호출한다.
+2. pull과 up는 각각 한 번 정도 retry를 둘 수 있다.
+3. 이렇게 바꾸면 gateway 배포가 unrelated MySQL/Grafana/Redis exporter pull 실패에 영향을 덜 받는다.
+4. 근본적으로는 서드파티 운영 이미지를 ECR mirror 또는 사내 registry로 옮기는 것도 검토한다.
+5. 실패 run 이후에도 실제 EC2의 `.env.backend`와 `gateway-service` 컨테이너가 이미 새 이미지로 올라갔을 수 있으니, job 결과만 보지 말고 서버 상태를 같이 확인한다.
