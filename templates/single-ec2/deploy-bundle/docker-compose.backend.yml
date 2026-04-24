@@ -76,6 +76,12 @@ services:
     env_file:
       - ./.env.backend
     command: ["--spring.profiles.active=prod"]
+    environment:
+      MYSQL_HOST: auth-mysql
+      MYSQL_URL: ${MYSQL_URL:-jdbc:mysql://auth-mysql:3306/${MYSQL_DB:-authdb}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      SPRING_DATASOURCE_URL: ${MYSQL_URL:-jdbc:mysql://auth-mysql:3306/${MYSQL_DB:-authdb}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-authuser}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}
     depends_on:
       auth-mysql:
         condition: service_healthy
