@@ -1,6 +1,6 @@
 # Single EC2 Templates
 
-이 디렉터리는 AWS Free Tier 기준 단일 EC2 배포를 바로 시작할 수 있게 하는 템플릿 모음이다.
+이 디렉터리는 단일 EC2 `m7i-flex.large` 배포를 바로 시작할 수 있게 하는 템플릿 모음이다.
 
 ## 포함 파일
 

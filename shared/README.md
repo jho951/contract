@@ -14,7 +14,7 @@
 | [audit.md](audit.md)                             | 공통 감사 이벤트 원칙                                  |
 | [monitoring.md](monitoring.md)                   | 공통 health/readiness/metrics 관측 기준                |
 | [deployment-topologies.md](deployment-topologies.md) | 배포 방식 이력, EC2 bootstrap 구현 기록, ECS 전환 기준 |
-| [single-ec2-deployment.md](single-ec2-deployment.md) | Free Tier 기준 단일 EC2 배포 체크리스트, env, 포트 정책 |
+| [single-ec2-deployment.md](single-ec2-deployment.md) | `m7i-flex.large` 기준 단일 EC2 배포 체크리스트, env, 포트 정책 |
 | [implementation-rollup-2026-04-24.md](implementation-rollup-2026-04-24.md) | 구현 레포 반영 사항, ECR 정책, build/run 분리 요약 |
 | [terraform/shared-platform-network/README.md](terraform/shared-platform-network/README.md) | shared VPC, subnet, private hosted zone 공통 Terraform |
 | [env.md](env.md)                                 | 공통 환경변수 작성 원칙                                 |

@@ -9,7 +9,7 @@
 
 ## 0. 현재 계정 기준 운영 모드: 논리적 MSA, 물리적 단일 EC2 통합
 
-현재 AWS Free Tier 제약에서는 아래 방식을 현행 운영 기준으로 둔다.
+현재는 단일 EC2 `m7i-flex.large` 운영 기준으로 아래 방식을 현행 운영 기준으로 둔다.
 
 핵심 원칙:
 
@@ -32,14 +32,13 @@ Internet / Client
   -> redis-service
 
 monitoring-service
-  -> 같은 EC2에 최소 구성으로 올리거나
-  -> 비용/리소스 압박 시 비활성화
+  -> 같은 EC2에 기본 포함
 ```
 
 이 방식을 현재 기본값으로 두는 이유:
 
-- NAT Gateway, ALB, Route53 private hosted zone, Fargate를 모두 켜면 Free Tier 범위를 쉽게 넘는다.
-- 단일 EC2는 비용 예측이 가장 쉽고, 초기 검증 속도가 빠르다.
+- 현재는 `m7i-flex.large` 한 대에 7개 서비스를 함께 올릴 수 있는 여유가 있다.
+- 단일 EC2는 운영 단순성과 초기 배포 속도가 가장 좋다.
 - 서비스별 repo, contract, env, monitoring 기준은 그대로 유지할 수 있다.
 
 현재 운영 규칙:
@@ -47,7 +46,7 @@ monitoring-service
 1. gateway만 host port를 외부에 노출한다.
 2. auth, user, authz, editor, redis는 가능하면 host 외부에 직접 노출하지 않는다.
 3. 서비스 간 호출 주소는 `auth-service:8081`, `user-service:8082`, `authz-service:8084`, `editor-service:8083`, `redis:6379` 같은 compose alias를 기본으로 둔다.
-4. monitoring은 리소스가 허용되면 같은 host에 함께 올리고, 그렇지 않으면 앱 서비스 우선으로 둔다.
+4. monitoring은 같은 host에 기본 포함으로 함께 올린다.
 5. 이 방식은 고가용성/무중단 기본값이 아니라 비용 최적화 개발/초기 운영 모드다.
 
 실행 체크리스트와 서비스별 env/포트 정책은 [single-ec2-deployment.md](single-ec2-deployment.md)를 기준으로 본다.
@@ -267,7 +266,7 @@ resource "aws_route53_record" "private_service" {
 
 운영 기준은 다음처럼 고정한다.
 
-1. 현재 Free Tier 계정에서는 단일 EC2 + Docker Compose를 실제 배포 기본값으로 둔다.
+1. 현재는 `m7i-flex.large` 단일 EC2 + Docker Compose를 실제 배포 기본값으로 둔다.
 2. 무중단과 확장성이 중요한 정식 운영 단계로 넘어가면 앱 서비스는 ECS/Fargate로 승격한다.
 3. Redis, Prometheus, Grafana, Loki처럼 host 성격이 강하면 승격 이후에도 EC2 유지 후보로 본다.
 4. `docker/prod/compose.yml`은 현재 계정에서는 실제 배포 기준이고, 비용 제약이 해제되면 fallback/reference로 되돌린다.
@@ -275,6 +274,6 @@ resource "aws_route53_record" "private_service" {
 
 남은 환경 작업:
 
-- 현재 Free Tier 모드에서는 단일 EC2 compose env 파일과 공개 포트 정책을 먼저 확정한다.
+- 현재 단일 EC2 운영 모드에서는 단일 EC2 compose env 파일과 공개 포트 정책을 먼저 확정한다.
 - 비용 제약이 해제되면 `shared/terraform/shared-platform-network/`를 apply해서 shared VPC와 private hosted zone을 만든다.
 - 그 다음 각 서비스 repo의 `terraform.tfvars`에 실제 subnet ID, security group ID, private hosted zone ID를 채운다.
