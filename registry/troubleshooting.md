@@ -1470,3 +1470,22 @@ git diff --check
 2. autosave, `Ctrl+S`, page leave는 같은 queue를 flush하는 서로 다른 트리거로만 취급한다.
 3. 같은 flush 전에 생긴 `create -> replace -> delete`, 연속 content 수정, 연속 move 같은 중간 상태는 queue에서 상쇄/병합한다.
 4. 서버에 “모든 입력 이벤트”가 아니라 “현재까지 반영할 가치가 있는 최종 batch”만 보내는 것이 정상 동작임을 기준으로 본다.
+### 25. trash 문서 완전 삭제가 404로 떨어지면 `delete()`가 active 문서만 찾는지 먼저 본다
+
+- 증상:
+  - FE에서 휴지통 문서 완전 삭제로 `DELETE /v1/documents/{documentId}`를 호출했는데 `404 Not Found`가 난다.
+  - 같은 문서는 `GET /v1/documents/trash` 목록에는 보인다.
+- 원인:
+  - `DocumentServiceImpl.delete()`가 `findActiveDocument(documentId)`를 쓰면 `deletedAt != null`인 trash 문서를 바로 `DOCUMENT_NOT_FOUND`로 처리한다.
+  - 계약상 `DELETE /documents/{documentId}`는 존재해도 구현이 active 문서만 전제하면 trash purge가 불가능하다.
+- 확인 포인트:
+  - `delete()` 시작부가 `findByIdAndDeletedAtIsNull(...)` 또는 `findActiveDocument(...)`를 타는지 본다.
+  - purge 대상 resource binding scheduling이 active tree 기준으로만 계산되는지 본다.
+- 수정:
+  - `delete()`에서 문서는 `documentRepository.findById(documentId)`로 먼저 찾는다.
+  - 문서가 active면 `collectActiveDocumentTreeIds(document)`를 쓰고,
+  - trash면 `collectDeletedDocumentTreeIds(document)`를 써서 purge 대상 ID를 잡는다.
+  - 그 다음은 지금처럼 `scheduleDocumentBindingsForPurge(...)` 후 `documentRepository.delete(document)`를 유지한다.
+- 테스트:
+  - service test에 `trash 문서 delete` 케이스를 추가한다.
+  - integration test에 `PATCH /documents/{id}/trash -> DELETE /documents/{id}` 성공 케이스를 추가한다.
