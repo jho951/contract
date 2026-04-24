@@ -2,7 +2,7 @@
 set -euo pipefail
 
 DEPLOY_ROOT="${1:-/opt/deploy}"
-CONTRACT_REPO_URL="${CONTRACT_REPO_URL:-https://github.com/jho951/contract-service.git}"
+CONTRACT_REPO_URL="${CONTRACT_REPO_URL:-https://github.com/jho951/service-contract.git}"
 TMP_DIR="$(mktemp -d)"
 
 cleanup() {
@@ -13,10 +13,10 @@ trap cleanup EXIT
 sudo mkdir -p "$DEPLOY_ROOT"
 sudo chown -R "$(id -un)":"$(id -gn)" "$DEPLOY_ROOT"
 
-git clone "$CONTRACT_REPO_URL" "$TMP_DIR/contract-service"
+git clone "$CONTRACT_REPO_URL" "$TMP_DIR/service-contract"
 
-cp -R "$TMP_DIR/contract-service/templates/single-ec2/deploy-bundle/." "$DEPLOY_ROOT/"
-cp "$TMP_DIR/contract-service/templates/single-ec2/nginx.single-ec2.conf.example" "$DEPLOY_ROOT/nginx.single-ec2.conf.example"
+cp -R "$TMP_DIR/service-contract/templates/single-ec2/deploy-bundle/." "$DEPLOY_ROOT/"
+cp "$TMP_DIR/service-contract/templates/single-ec2/nginx.single-ec2.conf.example" "$DEPLOY_ROOT/nginx.single-ec2.conf.example"
 
 chmod +x \
   "$DEPLOY_ROOT/scripts/bootstrap-ec2.sh" \

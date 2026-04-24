@@ -29,6 +29,8 @@ env:
   SERVICE_NAME: auth-service
   CI_PROFILE: spring-boot
   CD_PROFILE: ec2-compose
+  COMPOSE_VALIDATE_SCRIPT: ./scripts/validate-compose.sh
+  DEPLOY_WRAPPER_SCRIPT: ./scripts/deploy-stack-service.sh
   JAVA_VERSION: "17"
   NODE_VERSION: "20"
   TEST_COMMAND: ./gradlew clean test
@@ -66,9 +68,7 @@ jobs:
       - name: Fetch contract source
         shell: bash
         run: |
-          set -euo pipefail
-          CONTRACT_REF="$(awk '/^[[:space:]]*ref:/ { print $2; exit }' contract.lock.yml)"
-          git clone --depth 1 --branch "$CONTRACT_REF" "$CONTRACT_REPO" .contract
+          bash ./scripts/fetch-contract.sh
 
       - name: Verify consumed contract paths
         shell: bash
@@ -95,6 +95,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Fetch contract source
+        if: ${{ env.CD_PROFILE == 'ec2-compose' }}
+        shell: bash
+        run: |
+          bash ./scripts/fetch-contract.sh
+
+      - name: Ensure wrapper scripts are executable
+        if: ${{ env.CD_PROFILE == 'ec2-compose' }}
+        run: chmod +x "${COMPOSE_VALIDATE_SCRIPT}" "${DEPLOY_WRAPPER_SCRIPT}"
+
+      - name: Validate dev compose
+        if: ${{ env.CD_PROFILE == 'ec2-compose' }}
+        run: ${{ env.COMPOSE_VALIDATE_SCRIPT }} dev
+
+      - name: Validate prod compose
+        if: ${{ env.CD_PROFILE == 'ec2-compose' }}
+        run: ${{ env.COMPOSE_VALIDATE_SCRIPT }} prod
 
       - name: Setup Java
         if: ${{ env.CI_PROFILE == 'spring-boot' || env.CI_PROFILE == 'module' }}
@@ -126,6 +144,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: test-build
     if: ${{ github.event_name != 'pull_request' && env.CI_PROFILE != 'module' }}
+    outputs:
+      image_uri: ${{ steps.image-meta.outputs.image_uri }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -140,15 +160,19 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Resolve image URI
+        id: image-meta
+        run: echo "image_uri=${{ steps.login-ecr.outputs.registry }}/${{ env.DOCKER_IMAGE_REPOSITORY }}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
       - name: Build image
         env:
-          DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ env.DOCKER_IMAGE_REPOSITORY }}
-        run: docker build -t "${DOCKER_IMAGE}:${GITHUB_SHA}" .
+          DOCKER_IMAGE: ${{ steps.image-meta.outputs.image_uri }}
+        run: docker build -t "${DOCKER_IMAGE}" .
 
       - name: Push image
         env:
-          DOCKER_IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ env.DOCKER_IMAGE_REPOSITORY }}
-        run: docker push "${DOCKER_IMAGE}:${GITHUB_SHA}"
+          DOCKER_IMAGE: ${{ steps.image-meta.outputs.image_uri }}
+        run: docker push "${DOCKER_IMAGE}"
 
   deploy:
     name: Deploy
@@ -162,9 +186,29 @@ jobs:
           echo "Deploy profile: ${CD_PROFILE}"
           echo "Target environment: ${{ inputs.deploy_environment }}"
 
-      - name: Deploy placeholder
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch contract source
+        if: ${{ env.CD_PROFILE == 'ec2-compose' }}
+        shell: bash
         run: |
-          echo "Run the repository-specific EC2 compose deployment here."
+          bash ./scripts/fetch-contract.sh
+
+      - name: Ensure deploy wrapper is executable
+        if: ${{ env.CD_PROFILE == 'ec2-compose' }}
+        run: chmod +x "${DEPLOY_WRAPPER_SCRIPT}"
+
+      - name: Deploy via /opt/deploy wrapper
+        if: ${{ env.CD_PROFILE == 'ec2-compose' }}
+        env:
+          AUTH_SERVICE_IMAGE: ${{ needs.docker-image.outputs.image_uri }}
+        run: ${{ env.DEPLOY_WRAPPER_SCRIPT }} "${{ inputs.deploy_environment }}"
+
+      - name: Deploy placeholder
+        if: ${{ env.CD_PROFILE != 'ec2-compose' }}
+        run: |
+          echo "Implement the repository-specific deploy wrapper here."
 
       - name: Smoke check
         run: |

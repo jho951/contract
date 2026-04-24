@@ -10,6 +10,7 @@ NETWORK_NAME="${SERVICE_SHARED_NETWORK:-service-backbone-shared}"
 ACTION="${1:-up}"
 shift || true
 TARGET_SERVICES=("$@")
+EXPANDED_TARGETS=()
 
 BACKEND_SERVICES=(
   redis-server
@@ -33,11 +34,23 @@ FRONTEND_SERVICES=(
   explain-page
 )
 
+declare -A SERVICE_ALIASES=(
+  [gateway-service]="gateway-service"
+  [auth-service]="auth-service"
+  [user-service]="user-service"
+  [authz-service]="authz-service"
+  [editor-service]="editor-service"
+  [redis-service]="redis-server"
+  [monitoring-service]="prometheus grafana loki promtail"
+  [editor-page]="editor-page"
+  [explain-page]="explain-page"
+)
+
 BACKEND_TARGETS=()
 FRONTEND_TARGETS=()
 
 usage() {
-  echo "Usage: deploy-stack.sh [up|down|restart|pull|ps|logs] [service-name ...]" >&2
+  echo "Usage: deploy-stack.sh [up|down|restart|pull|ps|logs] [service-name|service-alias ...]" >&2
   exit 1
 }
 
@@ -72,17 +85,34 @@ in_list() {
   return 1
 }
 
+expand_target() {
+  local target="$1"
+  if [[ -n "${SERVICE_ALIASES[$target]:-}" ]]; then
+    printf '%s\n' ${SERVICE_ALIASES[$target]}
+    return 0
+  fi
+  printf '%s\n' "$target"
+}
+
 classify_targets() {
-  local service
-  for service in "${TARGET_SERVICES[@]}"; do
-    if in_list "$service" "${BACKEND_SERVICES[@]}"; then
-      BACKEND_TARGETS+=("$service")
-    elif in_list "$service" "${FRONTEND_SERVICES[@]}"; then
-      FRONTEND_TARGETS+=("$service")
-    else
-      echo "Unsupported service: $service" >&2
-      usage
-    fi
+  local target service
+  for target in "${TARGET_SERVICES[@]}"; do
+    while IFS= read -r service; do
+      [[ -n "$service" ]] || continue
+      if in_list "$service" "${EXPANDED_TARGETS[@]}"; then
+        continue
+      fi
+      EXPANDED_TARGETS+=("$service")
+
+      if in_list "$service" "${BACKEND_SERVICES[@]}"; then
+        BACKEND_TARGETS+=("$service")
+      elif in_list "$service" "${FRONTEND_SERVICES[@]}"; then
+        FRONTEND_TARGETS+=("$service")
+      else
+        echo "Unsupported service: $target" >&2
+        usage
+      fi
+    done < <(expand_target "$target")
   done
 }
 

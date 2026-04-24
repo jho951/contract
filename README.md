@@ -26,6 +26,8 @@ Frontend -> Gateway -> Auth / Authz / User / Editor / Redis / Monitoring
 | [registry](registry/README.md) | repository 목록, adoption 상태, 운영 절차 |
 | [repositories](repositories/README.md) | 실제 GitHub repo별 계약 |
 | [shared](shared/README.md) | 모든 서비스가 따르는 공통 규칙 |
+| [ci](ci/README.md) | 서비스 repo compose validation용 공통 `.env.ci.dev` / `.env.ci.prod` |
+| [scripts](scripts) | contract repo에서 직접 호출하는 compose/env 검증 스크립트 |
 | [repositories/gateway-service](repositories/gateway-service/README.md) | public route, 인증 프록시, header 재주입 |
 | [repositories/auth-service](repositories/auth-service/README.md) | 로그인, refresh, SSO, session, JWT/JWKS |
 | [repositories/authz-service](repositories/authz-service/README.md) | 권한 판단, RBAC, policy, introspection |
@@ -37,7 +39,7 @@ Frontend -> Gateway -> Auth / Authz / User / Editor / Redis / Monitoring
 | [repositories/monitoring-service](repositories/monitoring-service/README.md) | metrics, logs, dashboard, alert 운영 계약 |
 | [artifacts/schemas](artifacts/schemas) | 공통 JSON Schema |
 | [artifacts/openapi](artifacts/openapi) | OpenAPI 계약 |
-| [templates](templates) | 서비스별 `contract.lock.yml`, README, PR 템플릿 예시 |
+| [templates](templates) | 서비스별 `contract.lock.yml`, workflow, wrapper 스크립트 템플릿 |
 
 ## 읽는 순서
 1. [registry/adoption-matrix.md](registry/adoption-matrix.md)에서 대상 repo와 branch를 확인한다.

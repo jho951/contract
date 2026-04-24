@@ -23,9 +23,12 @@ repo별 차이는 [registry/repositories.yml](../registry/repositories.yml)의 `
 
 ## Rules
 - `contract-lock`은 모든 repo에서 첫 번째 job으로 실행한다.
+- workflow는 service repo의 `scripts/fetch-contract.sh`로 `contract.lock.yml`의 `repo/ref/commit`을 읽어 `.contract`를 만들고, fetch된 HEAD가 lock의 `commit`과 다르면 실패시킨다.
 - `test`와 `build`는 contract 검증이 실패하면 실행하지 않는다.
 - production deploy는 protected branch 또는 tag에서만 수행한다.
 - service-specific command는 workflow에 직접 흩뿌리지 않고 `contract.lock.yml`과 `registry/repositories.yml`에 기록한다.
+- ec2-compose repo의 compose validation은 service-contract의 `ci/env/<service>/.env.ci.dev`, `.env.ci.prod`를 기준으로 수행한다.
+- ec2-compose repo workflow에는 compose validation용 inline env를 두지 않고, repo 안의 얇은 wrapper 스크립트만 호출한다.
 - 운영 배포용 Compose는 `build:` 대신 `image:`만 사용한다.
 - build 설정과 private package 인증은 `docker/compose.build.yml` 또는 CI의 `docker build` 단계에만 둔다.
 - 운영/실행용 Compose 파일은 image pull만 담당하고, build secret을 포함하지 않는다.
@@ -35,6 +38,8 @@ repo별 차이는 [registry/repositories.yml](../registry/repositories.yml)의 `
 - 실제 배포 태그는 `${GITHUB_SHA}`를 기본 immutable tag로 사용한다.
 - `latest` 태그는 `main` 또는 `master`에서만 추가 발행하고, deploy 대상 태그로 직접 사용하지 않는다.
 - EC2 또는 원격 Docker host는 CI가 만든 이미지를 `docker compose pull [service...] && docker compose up -d [service...]` 또는 동등한 서비스 단위 pull/up 방식으로 반영한다.
+- 단일 EC2 deploy bundle을 쓰는 repo의 CD는 원격 `/opt/deploy`에서 `./scripts/deploy-stack.sh up <service>`만 호출하는 것을 canonical로 둔다.
+- ec2-compose CD는 deploy 직전에 lock으로 가져온 `templates/single-ec2/deploy-bundle/`을 원격 `/opt/deploy`에 동기화한 뒤, 같은 위치의 `deploy-stack.sh`를 호출한다.
 - 전체 스택 초기 기동이 아니라 서비스 단건 CD라면 대상 서비스만 지정해서 반영하는 것을 우선한다.
 - private repository 접근 토큰과 key는 CI 서버 또는 로컬 build 환경에만 두고, production runtime에는 주입하지 않는다.
 - image-only EC2 배포를 쓰는 repo는 저장소 안에 `deploy/ec2` 산출물을 둔다.

@@ -45,12 +45,19 @@
 6. 운영 중 단일 서비스만 갱신할 때는 `scripts/deploy-stack.sh up <service-name>`을 사용한다.
 7. Nginx 설정은 `../nginx.single-ec2.conf.example`을 적용한다.
 
+CI/CD 규칙:
+
+- 자동 배포는 항상 `/opt/deploy`에서 `./scripts/deploy-stack.sh up <service-name>`만 호출한다.
+- service repo workflow는 `contract.lock.yml`로 fetch한 `.contract/templates/single-ec2/deploy-bundle/`을 먼저 `/opt/deploy`에 동기화한 뒤 같은 경로의 스크립트를 호출한다.
+- workflow에서 전체 `./scripts/deploy-stack.sh up`를 호출하지 않는다.
+- `<service-name>`은 repo 기준 alias도 받는다. 예: `gateway-service`, `auth-service`, `user-service`, `authz-service`, `editor-service`, `redis-service`, `monitoring-service`.
+
 EC2에서 바로 bundle을 받으려면:
 
 ```bash
-git clone https://github.com/jho951/contract-service.git /tmp/contract-service
-/tmp/contract-service/templates/single-ec2/deploy-bundle/scripts/bootstrap-ec2.sh /opt/deploy
-rm -rf /tmp/contract-service
+git clone https://github.com/jho951/service-contract.git /tmp/service-contract
+/tmp/service-contract/templates/single-ec2/deploy-bundle/scripts/bootstrap-ec2.sh /opt/deploy
+rm -rf /tmp/service-contract
 ```
 
 ## 예시
@@ -71,6 +78,8 @@ FORCE=true ./scripts/cleanup-old-clones.sh /opt/services
 ```bash
 cd /opt/deploy
 ./scripts/deploy-stack.sh up gateway-service
+./scripts/deploy-stack.sh up redis-service
+./scripts/deploy-stack.sh up monitoring-service
 ./scripts/deploy-stack.sh pull grafana
 ./scripts/deploy-stack.sh ps gateway-service
 ```
