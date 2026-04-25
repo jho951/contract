@@ -50,7 +50,7 @@ dependencies {
 - `platform-security`, `platform-governance`, `platform-resource`, `platform-integrations`는 GitHub Packages private `4.0.0` publish가 완료됐다.
 - `gateway-service`, `auth-service`, `authz-service`, `user-service`, `editor-service`는 published `4.0.0` coordinate를 소비하는 main 브랜치 상태로 반영됐다.
 - 5개 서비스 CD는 모두 성공했다. `authz-service`는 single-EC2에서 stale `authz-service` container가 남아도 재배포되도록 `docker compose ... rm -sf authz-service || true` guard를 추가했다.
-- 현재 known residual은 `editor-service`의 current storage backing에 남아 있는 `file-storage-core:2.0.0` 직접 사용이다.
+- `editor-service`의 prod resource backing도 `ResourceContentStore` port 구현으로 정리돼, 5개 서비스 compile surface에서 raw 1계층 직접 의존은 남아 있지 않다.
 
 필요할 때만 추가하는 sanctioned add-on:
 

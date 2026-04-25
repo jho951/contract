@@ -33,7 +33,7 @@
 | `auth-service` | `platform-runtime-bom 4.0.0`, `platform-governance-starter`, `platform-security-starter`, `platform-security-governance-bridge` | `PlatformTokenIssuerPort`, `PlatformSessionIssuerPort`, `PlatformSessionSupportFactory`, `PlatformRateLimitPort`, `GovernanceAuditSink`를 서비스가 직접 제공한다. |
 | `user-service` | `platform-runtime-bom 4.0.0`, `platform-governance-starter`, `platform-security-starter`, `platform-security-governance-bridge` | `UserPlatformRuntimeConfiguration`이 `GovernanceAuditSink`, JWT decoder, prod Redis 기반 `PlatformRateLimitPort`를 제공한다. |
 | `authz-service` | `platform-runtime-bom 4.0.0`, `platform-governance-starter`, `platform-security-starter`, `platform-security-web-api`, `platform-security-governance-bridge` | platform-owned internal auth flow, `GovernanceAuditSink`, prod Redis 기반 `PlatformRateLimitPort`를 쓴다. 2026-04-25 CD는 stale container 제거 후 정상 배포됐다. |
-| `editor-service` | `platform-runtime-bom 4.0.0`, `platform-governance/security/resource BOM 4.0.0`, `platform-governance-starter`, `platform-security-starter`, `platform-security-web-api`, `platform-resource-starter`, `platform-resource-jdbc`, `platform-security-governance-bridge 4.0.0`, `platform-resource-governance-bridge 4.0.0`, runtime `platform-resource-support-local` | `GovernanceAuditSink`, prod Redis 기반 `PlatformRateLimitPort`는 platform-owned contract로 옮겼다. 다만 현재 storage backing에는 `file-storage-core:2.0.0` 직접 사용이 남아 있다. |
+| `editor-service` | `platform-runtime-bom 4.0.0`, `platform-governance/security/resource BOM 4.0.0`, `platform-governance-starter`, `platform-security-starter`, `platform-security-web-api`, `platform-resource-starter`, `platform-resource-jdbc`, `platform-security-governance-bridge 4.0.0`, `platform-resource-governance-bridge 4.0.0`, runtime `platform-resource-support-local` | `GovernanceAuditSink`, prod Redis 기반 `PlatformRateLimitPort`, prod filesystem `ResourceContentStore`까지 platform contract 기준으로 정리됐다. |
 | `monitoring-service` | only if it becomes a custom Spring Boot/admin API service | observability wrapper는 현재 2계층 platform 소비 대상이 아니다. |
 | `redis-service` | not applied | real Redis infra는 현재 2계층 platform 소비 대상이 아니다. |
 
@@ -51,12 +51,12 @@
 
 ### 현재 적용 예외
 - `gateway-service`는 `platform-security-hybrid-web-adapter`를 sanctioned add-on으로 쓰지만, gateway 고유 `GatewayPlatformSecurityWebFilter`와 `HybridSecurityRuntime`이 edge filter chain을 계속 소유한다. `GatewayApplication`은 `PlatformSecurityHybridWebAdapterAutoConfiguration`만 exclude 한다.
-- `editor-service`는 더 이상 `platform-resource-core` 구현을 직접 생성하지 않는다. local fallback은 runtime `platform-resource-support-local`이 맡고, 서비스는 `platform-security-web-api`로 custom `SecurityFailureResponseWriter`를 구현한다. 다만 현재 storage backing에는 `file-storage-core:2.0.0` 직접 사용이 남아 있어 resource mainline cleanup은 미완료다.
+- `editor-service`는 더 이상 `platform-resource-core` 구현을 직접 생성하지 않는다. local fallback은 runtime `platform-resource-support-local`이 맡고, 서비스는 `platform-security-web-api`로 custom `SecurityFailureResponseWriter`를 구현한다. prod storage backing도 `ResourceContentStore` port 기준으로 정리했다.
 
 ### 4.0.0 Rollout Status
 - 2026-04-25 기준 `gateway-service`, `auth-service`, `authz-service`, `user-service`, `editor-service`는 published `platform 4.0.0`을 소비하는 main 브랜치 상태로 정리됐다.
 - 서비스 CD는 5개 모두 성공했고, `authz-service`는 stale `authz-service` container를 recreate 전에 제거하는 guard를 추가해 single-EC2 배포를 안정화했다.
-- 남은 직접 1계층 사용 잔여는 `editor-service`의 current storage backing용 `file-storage-core:2.0.0`이다.
+- 2026-04-25 기준 `gateway/auth/authz/user/editor` 5개 서비스 compile surface에는 raw 1계층 직접 의존이 남아 있지 않다.
 
 ### 감사 이벤트 대상
 | Service | Representative Events |

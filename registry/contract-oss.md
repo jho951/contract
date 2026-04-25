@@ -186,7 +186,7 @@ dependencies {
 | `auth-service` | `4.0.0` mainline 적용 및 CD 성공 | issuer/session/rate-limit mainline port 기준 |
 | `authz-service` | `4.0.0` mainline 적용 및 CD 성공 | deploy 단계에서 stale container 제거 guard 추가 |
 | `user-service` | `4.0.0` mainline 적용 및 CD 성공 | `GovernanceAuditSink`, `PlatformRateLimitPort` 기준 |
-| `editor-service` | `4.0.0` mainline 적용 및 CD 성공 | resource path는 올라왔지만 `file-storage-core:2.0.0` 직접 사용이 남아 있음 |
+| `editor-service` | `4.0.0` mainline 적용 및 CD 성공 | governance/security/resource contract 기준. prod resource backing도 `ResourceContentStore` port로 정리됨 |
 
 ## 서비스별 계약 목표
 
