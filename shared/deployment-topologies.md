@@ -132,6 +132,8 @@ services:
 
 ## 2. 장기 권장 방식: ECS/Fargate blue/green + EC2 hybrid
 
+현재 EC2 image 배포에서 v2 ECS + Terraform 전환을 실제로 진행할 때의 기준 문서는 [v2-ecs-terraform-deployment.md](v2-ecs-terraform-deployment.md)다. 이 문서는 배포 방식의 이력과 선택 배경을 남기고, v2 운영 기준 자체는 별도 문서로 고정한다.
+
 무중단 배포가 요구사항이 되면서 앱 서비스의 기준을 바꿨다.
 
 최종 선택:

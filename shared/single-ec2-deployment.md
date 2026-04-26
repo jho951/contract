@@ -414,3 +414,5 @@ GRAFANA_ADMIN_PASSWORD=<grafana-admin-password>
   -> app service는 ECS/Fargate + CodeDeploy blue/green
   -> redis/monitoring은 EC2 유지 또는 별도 관리형 서비스 전환
 ```
+
+상세 전환 기준은 [v2-ecs-terraform-deployment.md](v2-ecs-terraform-deployment.md)를 따른다.
