@@ -1,0 +1,52 @@
+contract:
+  repo: https://github.com/jho951/service-contract
+  ref: v2026.04.16
+  commit: abc1234
+
+service:
+  name: auth-service
+  branch: main
+  role: backend-service
+  consumes:
+    - conventions/shared/common-guidelines.md
+    - conventions/coding/coding-conventions.md
+    - conventions/shared/routing.md
+    - conventions/shared/headers.md
+    - conventions/shared/security.md
+    - conventions/shared/errors.md
+    - services/server/auth/**
+    - services/artifacts/openapi/v1/auth-service.yaml
+
+validation:
+  contract_lock: true
+  openapi: true
+  schema: true
+  routing: true
+  headers: true
+  errors: true
+  security: true
+
+ci:
+  profile: spring-boot
+  runtime: java
+  java_version: "17"
+  setup: gradle
+  test_command: ./gradlew clean test
+  build_command: ./gradlew bootJar
+  docker: true
+
+cd:
+  profile: ec2-compose
+  target: ec2
+  strategy: docker-compose
+  environments:
+    - dev
+    - prod
+  image_registry: ecr.amazonaws.com
+  deploy_on: protected_branch
+  health_check: true
+  smoke_test: true
+
+notes:
+  owner: auth-service
+  legacy_sync_doc: false

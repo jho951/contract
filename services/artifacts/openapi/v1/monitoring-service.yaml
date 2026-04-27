@@ -1,0 +1,90 @@
+openapi: 3.0.3
+info:
+  title: monitoring-service Operator API 문서
+  version: 1.0.0
+  description: |
+    이 문서는 monitoring-service가 운영하는 관측 스택의 operator-facing health/readiness endpoint 계약이다.
+    비즈니스 API가 아니라 Grafana, Prometheus, Loki 같은 운영 구성요소의 상태 확인 endpoint만 다룬다.
+x-service-contract:
+  service: monitoring-service
+  surface: operator
+  major_version: v1
+  public_route_owner: none
+  owned_paths:
+    - /api/health
+    - /-/ready
+    - /ready
+  capabilities:
+    - grafana-health
+    - prometheus-ready
+    - loki-ready
+servers:
+  - url: http://localhost:3005
+    description: Grafana host 포트 예시
+  - url: http://localhost:9090
+    description: Prometheus host 포트 예시
+  - url: http://localhost:3100
+    description: Loki host 포트 예시
+
+tags:
+  - name: Grafana
+    description: Grafana 운영 endpoint
+  - name: Prometheus
+    description: Prometheus 운영 endpoint
+  - name: Loki
+    description: Loki 운영 endpoint
+
+paths:
+  /api/health:
+    get:
+      tags: [Grafana]
+      summary: Grafana health 조회
+      operationId: getGrafanaHealth
+      responses:
+        '200':
+          description: Grafana health 응답
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GrafanaHealthResponse'
+
+  /-/ready:
+    get:
+      tags: [Prometheus]
+      summary: Prometheus readiness 조회
+      operationId: getPrometheusReady
+      responses:
+        '200':
+          description: Prometheus ready 상태
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Prometheus Server is Ready.
+
+  /ready:
+    get:
+      tags: [Loki]
+      summary: Loki readiness 조회
+      operationId: getLokiReady
+      responses:
+        '200':
+          description: Loki ready 상태
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: ready
+
+components:
+  schemas:
+    GrafanaHealthResponse:
+      type: object
+      properties:
+        commit:
+          type: string
+        database:
+          type: string
+          example: ok
+        version:
+          type: string

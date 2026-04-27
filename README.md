@@ -1,53 +1,67 @@
 # Service Contract
 
-## 레포 필요성
+## 원칙
+- 공통 계약과 충돌하는 로컬 관례는 허용하지 않는다.
+- 새 규칙을 추가할 때는 서비스 구현보다 먼저 contract 문서를 갱신한다.
 
-서비스가 여러 레포로 나뉘면 각 팀/서비스가 서로 다른 API 모양을 가정하기 쉽다.
+## 의의
 
 ```txt
 Frontend -> Gateway -> Auth / Authz / User / Editor / Redis / Monitoring
 ```
 
+서비스가 여러 레포로 나뉘면 각 팀/서비스가 서로 다른 이해관계가 생깁니다.
+
 이 레포는 위 서비스들이 같은 기준을 보도록 만드는 단일 기준점이다.
 
 ## 핵심 원칙
-- Public API versioning은 Gateway가 소유한다.
-- Backend service는 자기 upstream/internal API만 소유한다.
-- 공통 규칙은 `shared`에 둔다.
-- 기계가 검증할 schema는 `artifacts/schemas`에 둔다.
-- 서비스별 계약은 `repositories/<repo>`에 둔다.
-- OpenAPI 파일은 `artifacts/openapi`에 둔다.
-- Terraform 공통 구조는 `shared/terraform.md`에 둔다.
+- Public API versioning(예: `v1`)은 Gateway가 소유합니다.
+- service는 자기 upstream/internal API만 소유합니다.
+- coding, pipeline, versioning 운영 규칙은 `conventions`에 둔다.
+- REST API, routing, security, env, terraform 공통 기술 규칙은 `conventions/shared`에 둔다.
+- 기술적 아키텍처 결정은 `adr`에 둔다.
+- 도메인, 공통 라이브러리, platform 사용 현황, 현재 운영 상태 요약은 `infra`에 둔다.
+- 기계가 검증할 schema는 `services/artifacts/schemas`에 둔다.
+- 서비스별 계약 메모는 `services/server/*`, `services/client/*`에 둔다.
+- OpenAPI 파일은 `services/artifacts/openapi`에 둔다.
+- Terraform 공통 구조는 `conventions/shared/terraform.md`에 둔다.
 - 미래 기능은 현재 계약처럼 쓰지 않고 draft/planned로 표시한다.
 
 ## 디렉토리 지도
-| 위치 | 역할 |
-| --- | --- |
-| [registry](registry/README.md) | repository 목록, adoption 상태, 운영 절차 |
-| [repositories](repositories/README.md) | 실제 GitHub repo별 계약 |
-| [shared](shared/README.md) | 모든 서비스가 따르는 공통 규칙 |
-| [ci](ci/README.md) | 서비스 repo compose validation용 공통 `.env.ci.dev` / `.env.ci.prod` |
-| [scripts](scripts) | contract repo에서 직접 호출하는 compose/env 검증 스크립트 |
-| [repositories/gateway-service](repositories/gateway-service/README.md) | public route, 인증 프록시, header 재주입 |
-| [repositories/auth-service](repositories/auth-service/README.md) | 로그인, refresh, SSO, session, JWT/JWKS |
-| [repositories/authz-service](repositories/authz-service/README.md) | 권한 판단, RBAC, policy, introspection |
-| [repositories/user-service](repositories/user-service/README.md) | 사용자 프로필, 상태, visibility |
-| [repositories/editor-service](repositories/editor-service/README.md) | 문서/블록 편집 도메인 계약 |
-| [repositories/editor-page](repositories/editor-page/README.md) | editor UI의 Gateway 소비 계약 |
-| [repositories/explain-page](repositories/explain-page/README.md) | explain UI의 Gateway/SSO 소비 계약 |
-| [repositories/redis-service](repositories/redis-service/README.md) | Redis key, cache, ops 계약 |
-| [repositories/monitoring-service](repositories/monitoring-service/README.md) | metrics, logs, dashboard, alert 운영 계약 |
-| [artifacts/schemas](artifacts/schemas) | 공통 JSON Schema |
-| [artifacts/openapi](artifacts/openapi) | OpenAPI 계약 |
-| [templates](templates) | 서비스별 `contract.lock.yml`, workflow, wrapper 스크립트 템플릿 |
+| 위치                                                                           | 역할                                                             |
+|------------------------------------------------------------------------------|----------------------------------------------------------------|
+| [services](services/README.md) | 서비스별 계약 메모, client/server 분류, artifact 허브 |
+| [services/registry](services/registry/README.md) | repository 목록, adoption 상태, 운영 절차 |
+| [conventions](conventions/README.md) | coding, pipeline, versioning 축 운영 규칙 허브 |
+| [conventions/shared](conventions/shared/README.md) | 모든 서비스가 따르는 공통 기술 규칙 |
+| [adr](adr/README.md) | 기술적 아키텍처 결정 기록 |
+| [infra](infra/README.md) | 도메인, 공통 라이브러리, platform 사용, 현재 운영 상태 요약 |
+| [conventions/pipeline/env](conventions/pipeline/env/README.md) | 서비스 repo compose validation용 공통 `.env.ci.dev` / `.env.ci.prod` |
+| [services/server/gateway](services/server/gateway/troubleshooting.md) | public route, 인증 프록시, header 재주입 |
+| [services/server/auth](services/server/auth/troubleshooting.md) | 로그인, refresh, SSO, session, JWT/JWKS |
+| [services/server/authz](services/server/authz/troubleshooting.md) | 권한 판단, RBAC, policy, introspection |
+| [services/server/user](services/server/user/troubleshooting.md) | 사용자 프로필, 상태, visibility |
+| [services/server/editor](services/server/editor/troubleshooting.md) | 문서/블록 편집 도메인 계약 |
+| [services/client/editor](services/client/editor/README.md) | editor UI의 Gateway 소비 계약 |
+| [services/client/explain](services/client/explain/README.md) | explain UI의 Gateway/SSO 소비 계약 |
+| [services/server/redis](services/server/redis/troubleshooting.md) | Redis key, cache, ops 계약 |
+| [services/server/monitoring](services/server/monitoring/troubleshooting.md) | metrics, logs, dashboard, alert 운영 계약 |
+| [services/artifacts/schemas](services/artifacts/schemas) | 공통 JSON Schema |
+| [services/artifacts/openapi](services/artifacts/openapi) | OpenAPI 계약 |
+| [infra/github](infra/github) | 서비스 레포에 복사할 GitHub Actions workflow 템플릿 |
+| [infra/templates](infra/templates/README.md) | 서비스별 `contract.lock.yml`, 문서, compose/env 템플릿 |
+| [infra/scripts](infra/scripts/README.md) | contract 검증, deploy wrapper, service repo/single-EC2 helper 스크립트 |
 
 ## 읽는 순서
-1. [registry/adoption-matrix.md](registry/adoption-matrix.md)에서 대상 repo와 branch를 확인한다.
-2. [shared/README.md](shared/README.md)에서 공통 원칙을 확인한다.
-3. Gateway가 관련되면 [repositories/gateway-service/auth-proxy.md](repositories/gateway-service/auth-proxy.md)를 먼저 본다.
-4. 변경하려는 서비스의 `repositories/<repo>/README.md`를 본다.
-5. API shape은 [artifacts/openapi](artifacts/openapi)의 해당 YAML로 확인한다.
-6. 실제 서비스 레포 작업 후 해당 레포의 `contract.lock.yml`을 contract tag/commit에 맞추고 CI 계약 검증 결과를 확인한다.
+1. [services/registry/adoption-matrix.md](services/registry/adoption-matrix.md)에서 대상 repo와 branch를 확인한다.
+2. 빠른 분류가 필요하면 [conventions/README.md](conventions/README.md)에서 coding, pipeline, versioning 중 어디를 봐야 할지 먼저 고른다.
+3. [conventions/shared/common-guidelines.md](conventions/shared/common-guidelines.md)에서 공통 가이드라인의 중앙 진입점을 확인한다.
+4. REST API를 건드리면 [conventions/coding/rest-api-design.md](conventions/coding/rest-api-design.md)에서 resource, method, status, query 기준을 먼저 확인한다.
+5. [conventions/shared/README.md](conventions/shared/README.md)에서 공통 문서 지도를 확인한다.
+6. Gateway가 관련되면 [services/server/gateway/troubleshooting.md](services/server/gateway/troubleshooting.md)를 먼저 본다.
+7. 변경하려는 서비스의 local `troubleshooting.md`, `v2.md`와 구현 레포 문서를 함께 본다.
+8. API shape은 [services/artifacts/openapi](services/artifacts/openapi)의 해당 YAML로 확인한다.
+9. 실제 서비스 레포 작업 후 해당 레포의 `contract.lock.yml`을 contract tag/commit에 맞추고 CI 계약 검증 결과를 확인한다.
 
 ## 변경 흐름
 ### 기존 구현을 문서화할 때
@@ -99,5 +113,6 @@ service-contract 계약 변경
 | Redis | project `redis-server-*`, service `redis-server`, shared alias `redis` | `6379` | private | 캐시/세션 저장 계층. exporter container 기본 이름은 `redis-exporter`다. |
 | Monitoring | project `monitoring-server` | Prometheus `9090`, Grafana host default `3005`, Loki `3100` | operator/private | Grafana container는 `3000`을 쓰지만 compose host 기본값은 `3005`다. dev Grafana는 각 서비스 private network에 붙고 Auth/User/Editor/Authz MySQL datasource를 기본 provisioning한다. |
 
-- contract의 서비스 디렉토리 이름은 repository 이름을 유지한다.
+- contract의 서비스 문서는 `services/server/<domain>`과 `services/client/<app>` 구조를 따른다.
+- repository 이름과 contract 디렉토리 이름이 다를 수 있으므로 canonical 식별자는 `services/repositories.yml`의 `name`을 기준으로 본다.
 - canonical 내부 이름은 `auth-mysql`, `user-mysql`, `authz-mysql`, `editor-mysql`, `editor-service`, `redis`, `redis-server`를 기준으로 맞춘다.

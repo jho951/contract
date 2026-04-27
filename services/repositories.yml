@@ -1,0 +1,292 @@
+contract:
+  repo: https://github.com/jho951/service-contract
+  lock: contract.lock.yml
+
+ci_profiles:
+  spring-boot: &ci_spring_boot
+    runtime: java
+    java_version: "17"
+    setup: gradle
+    test_command: ./gradlew clean test
+    build_command: ./gradlew bootJar
+    docker: true
+    contract_check: true
+  frontend: &ci_frontend
+    runtime: node
+    node_version: "20"
+    setup: npm
+    test_command: npm test -- --run
+    build_command: npm run build
+    docker: true
+    contract_check: true
+  infra: &ci_infra
+    runtime: docker
+    setup: compose
+    test_command: docker compose config
+    build_command: docker compose build
+    docker: true
+    contract_check: true
+  module: &ci_module
+    runtime: java
+    java_version: "17"
+    setup: gradle
+    test_command: ./gradlew clean test
+    build_command: ./gradlew build
+    docker: false
+    contract_check: true
+
+cd_profiles:
+  ec2-compose: &cd_ec2_compose
+    target: ec2
+    strategy: docker-compose
+    environments: [dev, prod]
+    image_registry: ecr.amazonaws.com
+    deploy_on: protected_branch
+    health_check: true
+    smoke_test: true
+  frontend-static: &cd_frontend_static
+    target: static-hosting
+    strategy: build-artifact
+    environments: [dev, prod]
+    deploy_on: protected_branch
+    health_check: false
+    smoke_test: true
+  library-publish: &cd_library_publish
+    target: package-registry
+    strategy: publish-on-tag
+    environments: [release]
+    deploy_on: tag
+    health_check: false
+    smoke_test: false
+
+repositories:
+  - name: gateway-service
+    github: https://github.com/jho951/gateway-service
+    branch: main
+    contract: services/server/gateway
+    lock: contract.lock.yml
+    role: gateway
+    status: adopted
+    runtime:
+      compose_project: gateway-service
+      compose_service: gateway-service
+      shared_aliases:
+        - gateway
+      container_port: 8080
+      runtime_health_path: /health
+      runtime_ready_path: /ready
+      metrics_path: /actuator/prometheus
+      public_health_path: /v1/health
+      public_ready_path: /v1/ready
+      upstream_defaults:
+        auth_service_url: http://auth-service:8081
+        user_service_url: http://user-service:8082
+        editor_service_url: http://editor-service:8083
+        authz_admin_verify_url: http://authz-service:8084/permissions/internal/admin/verify
+        redis_host: redis
+      authz_cache_prefix_default: "gateway:admin-authz:"
+    ci: *ci_spring_boot
+    cd:
+      <<: *cd_ec2_compose
+      port: 8080
+      health_path: /health
+      ready_path: /ready
+  - name: auth-service
+    github: https://github.com/jho951/auth-service
+    branch: main
+    contract: services/server/auth
+    lock: contract.lock.yml
+    role: backend-service
+    status: adopted
+    runtime:
+      compose_project: auth-service
+      compose_service: auth-service
+      container_port: 8081
+      dev_host_port: 8081
+      shared_network: service-backbone-shared
+      private_network: auth-private
+      db_host: auth-mysql
+      metrics_path: /actuator/prometheus
+    ci: *ci_spring_boot
+    cd:
+      <<: *cd_ec2_compose
+      port: 8081
+      health_path: /health
+      ready_path: /ready
+  - name: authz-service
+    github: https://github.com/jho951/service-authz
+    branch: main
+    contract: services/server/authz
+    lock: contract.lock.yml
+    role: backend-service
+    status: adopted
+    runtime:
+      compose_project: authz-service
+      compose_service_dev: authz-service
+      compose_service_prod: authz-service
+      container_port: 8084
+      dev_private_network: authz-private
+      dev_mysql_service: authz-mysql
+      prod_mysql_service: authz-mysql
+      redis_host_default_dev: redis
+      internal_auth_default_mode: HYBRID
+      metrics_path: /actuator/prometheus
+      env_prefixes:
+        - AUTHZ_
+        - PERMISSION_
+    ci: *ci_spring_boot
+    cd:
+      <<: *cd_ec2_compose
+      port: 8084
+      health_path: /health
+      ready_path: /ready
+  - name: user-service
+    github: https://github.com/jho951/user-service
+    branch: main
+    contract: services/server/user
+    lock: contract.lock.yml
+    role: backend-service
+    status: adopted
+    runtime:
+      compose_service: user-service
+      container_port: 8082
+      shared_network: service-backbone-shared
+      private_network: user-private
+      db_host: user-mysql
+      metrics_path: /actuator/prometheus
+    ci: *ci_spring_boot
+    cd:
+      <<: *cd_ec2_compose
+      port: 8082
+      health_path: /health
+      ready_path: /ready
+  - name: editor-service
+    github: https://github.com/jho951/editor-service
+    branch: main
+    contract: services/server/editor
+    lock: contract.lock.yml
+    role: backend-service
+    status: adopted
+    runtime:
+      compose_project_dev: editor-service-dev
+      compose_project_prod: editor-service-prod
+      compose_service: editor-service
+      container_port: 8083
+      application_name: editor-service
+      private_network: editor-private
+      db_host: editor-mysql
+      content_block_types:
+        - paragraph
+        - heading1
+        - heading2
+        - heading3
+      uuid_jdbc_type: CHAR
+      host_bind_var: EDITOR_SERVICE_HOST_BIND
+      host_port_var: EDITOR_SERVICE_HOST_PORT
+      metrics_path: /actuator/prometheus
+    ci: *ci_spring_boot
+    cd:
+      <<: *cd_ec2_compose
+      port: 8083
+      health_path: /actuator/health
+      ready_path: /actuator/health/readiness
+  - name: redis-service
+    github: https://github.com/jho951/redis-service
+    branch: main
+    contract: services/server/redis
+    lock: contract.lock.yml
+    role: infra
+    status: adopted
+    runtime:
+      compose_project_dev: redis-server-dev
+      compose_project_prod: redis-server-prod
+      compose_service: redis-server
+      shared_aliases:
+        - redis
+      exporter_container_default: redis-exporter
+      exporter_port: 9121
+      metrics_path: /metrics
+      shared_network_example_env: service-backbone-shared
+    ci: *ci_infra
+    cd:
+      <<: *cd_ec2_compose
+      port: 6379
+      health_path: redis-cli PING
+      ready_path: redis-cli PING
+  - name: monitoring-service
+    github: https://github.com/jho951/monitoring-service
+    branch: main
+    contract: services/server/monitoring
+    lock: contract.lock.yml
+    role: observability-runtime
+    status: adopted
+    runtime:
+      compose_project: monitoring-server
+      grafana_container_port: 3000
+      grafana_host_port_default: 3005
+      prometheus_port: 9090
+      loki_port: 3100
+      target_file_prod: monitoring/prometheus/targets/ec2-services.yml
+      target_file_dev_overlay: monitoring/prometheus/targets/local-services.yml
+      grafana_dev_private_networks:
+        - auth-private
+        - user-private
+        - editor-private
+        - authz-private
+      grafana_dev_datasource_files:
+        - docker/dev/grafana/provisioning/datasources/prometheus.yml
+        - docker/dev/grafana/provisioning/datasources/mysql.yml
+      target_labels:
+        auth: auth-service
+        user: user-service
+        editor: editor-service
+        gateway: gateway-service
+        authz: authz-service
+        redis: redis-server
+    ci: *ci_infra
+    cd:
+      <<: *cd_ec2_compose
+      port: 3005
+      health_path: /api/health
+      ready_path: /api/health
+  - name: audit-log
+    github: https://github.com/jho951/audit-log
+    branch: main
+    contract: conventions/shared/audit.md
+    lock: contract.lock.yml
+    role: module
+    status: adopted
+    ci: *ci_module
+    cd: *cd_library_publish
+  - name: editor-page
+    github: https://github.com/jho951/Editor-page
+    branch: master
+    contract: services/client/editor
+    lock: null
+    role: frontend
+    status: partial
+    runtime:
+      framework: vite-react
+      browser_entrypoint: gateway-service
+      gateway_base_env: VITE_GATEWAY_BASE_URL
+      gateway_base_default: http://localhost:8080
+      path_strategy: base-without-v1_endpoints-with-v1
+      credentials_mode: withCredentials
+    ci: *ci_frontend
+    cd: *cd_frontend_static
+  - name: explain-page
+    github: https://github.com/jho951/Explain-page
+    branch: main
+    contract: services/client/explain
+    lock: null
+    role: frontend
+    status: partial
+    runtime:
+      framework: nextjs
+      browser_entrypoint: gateway-service
+      gateway_base_env: NEXT_PUBLIC_GATEWAY_BASE_URL
+      gateway_base_default: http://localhost:8080
+      path_strategy: base-with-v1_endpoints-without-v1
+      credentials_mode: include
+    ci: *ci_frontend
+    cd: *cd_frontend_static
